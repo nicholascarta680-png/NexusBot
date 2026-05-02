@@ -1,8 +1,7 @@
-// Plug-in creato da elixir
-// ====================== FUN / ROAST COMMANDS - MAX VERSION ======================
+// ====================== PLUGIN ROAST & FUN - UNICO FILE ======================
 
 // ====================== .insulta ======================
-let insultaHandler = async (m, { conn, text }) => {
+let insulta = async (m, { conn, text }) => {
     if (!m.isGroup) throw 'Solo nei gruppi!'
 
     let menzione = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : text.replace(/@/, '') + '@s.whatsapp.net'
@@ -28,21 +27,18 @@ let insultaHandler = async (m, { conn, text }) => {
         "sei più inutile di un fornelletto da campo", "sei un handicappato mentale", "sei un sacco di letame",
         "sei così stupido che fai pena", "sei un fenomeno da baraccone", "sei la feccia della società",
         "sei un nano mentale", "sei un mongoloide patentato", "sei un deficiente cronico", "sei un ritardato di merda",
-        "sei un povero sfigato", "sei un perdente nato", "sei un fallito su tutta la linea", "sei un pezzente",
-        "sei un lurido schifoso", "sei un porco schifoso", "sei un bastardo figlio di puttana",
-        "sei un cane rognoso", "sei un maiale senza dignità", "sei un essere spregevole",
-        "sei un rifiuto della società", "sei un essere inutile e patetico", "sei un povero disgraziato",
-        "sei un coglione patentato", "sei un idiota di prima categoria", "sei un imbecille totale",
-        "sei un deficiente senza speranza", "sei un cretino patentato", "sei un cazzo di merda",
-        "sei un pezzo di merda vivente", "sei un mucchio di letame", "sei un rifiuto umano", "sei una merda secca"
+        "sei un povero sfigato", "sei un perdente nato", "sei un fallito su tutta la linea"
     ]
 
     let insulto = insulti[Math.floor(Math.random() * insulti.length)]
     await conn.reply(m.chat, `@${menzione.split('@')[0]} ${insulto}`, m, { mentions: [menzione] })
 }
+insulta.command = /^insulta$/i
+insulta.tags = ['fun']
+insulta.group = true
 
 // ====================== .roast ======================
-let roastHandler = async (m, { conn, text }) => {
+let roast = async (m, { conn, text }) => {
     if (!m.isGroup) throw 'Solo nei gruppi!'
 
     let menzione = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : text.replace(/@/, '') + '@s.whatsapp.net'
@@ -60,22 +56,18 @@ let roastHandler = async (m, { conn, text }) => {
         "Sei il tipo di persona che viene taggato solo nelle catene", "Sei come WiFi pubblico: tutti ti usano ma nessuno ti vuole",
         "Hai il carisma di un pezzo di pane raffermo", "Sei così brutto che fai sembrare bello Quasimodo",
         "La tua esistenza è un filler", "Sei il motivo per cui l'evoluzione a volte torna indietro",
-        "Sei talmente sfigato che perdi anche a testa o croce", "La tua vita è un bug del sistema",
-        "Sei il motivo per cui si inventano gli aborti", "Sei come un virus: nessuno ti vuole ma tutti ti prendono",
-        "Hai il sex appeal di un calzino sporco", "Sei così patetico che fai pena pure a me",
-        "Sei il campione mondiale di fallimenti", "La tua intelligenza è in modalità risparmio energetico",
-        "Sei così inutile che nemmeno la morte ti vuole", "Sei un errore di fabbrica",
-        "Sei la dimostrazione che la natura a volte fa scherzi brutti", "Sei un fallimento ambulante",
-        "Sei così brutto che tua madre ti copriva con un lenzuolo", "La tua vita è una barzelletta senza punchline",
-        "Sei il motivo per cui alcuni genitori si pentono", "Hai il fascino di una scarpa vecchia"
+        "Sei talmente sfigato che perdi anche a testa o croce", "La tua vita è un bug del sistema"
     ]
 
-    let roast = roasts[Math.floor(Math.random() * roasts.length)]
-    await conn.reply(m.chat, `@${menzione.split('@')[0]} ${roast}`, m, { mentions: [menzione] })
+    let txt = roasts[Math.floor(Math.random() * roasts.length)]
+    await conn.reply(m.chat, `@${menzione.split('@')[0]} ${txt}`, m, { mentions: [menzione] })
 }
+roast.command = /^roast$/i
+roast.tags = ['fun']
+roast.group = true
 
 // ====================== .sberla ======================
-let sberlaHandler = async (m, { conn, text }) => {
+let sberla = async (m, { conn, text }) => {
     let menzione = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : text.replace(/@/, '') + '@s.whatsapp.net'
     if (!menzione) throw 'A chi vuoi dare la sberla?'
 
@@ -85,83 +77,93 @@ let sberlaHandler = async (m, { conn, text }) => {
         "Sberla così forte che ti ho resettato il cervello",
         "Ti ho schiaffeggiato così forte che hai cambiato continente",
         "Sberla che ti ha girato la testa di 360°",
-        "Ti ho dato una sberla che ti è partito il dente del giudizio",
-        "Sberla storica, se ne parlerà per generazioni",
-        "Ti ho dato uno schiaffo che ti ha fatto vedere le stelle",
-        "Sberla così forte che ti ho spostato di 3 fusi orari",
-        "Ti ho schiaffeggiato così forte che hai cambiato cognome",
-        "Sberla da record mondiale", "Ti ho dato una sberla che ti ha fatto ricrescere i capelli"
+        "Ti ho dato una sberla che ti è partito il dente del giudizio"
     ]
 
     let txt = list[Math.floor(Math.random() * list.length)]
     await conn.reply(m.chat, `@${menzione.split('@')[0]} ${txt}`, m, { mentions: [menzione] })
 }
+sberla.command = /^sberla$/i
+sberla.tags = ['fun']
+sberla.group = true
 
 // ====================== .stupido ======================
-let stupidoHandler = async (m, { conn, text }) => {
+let stupido = async (m, { conn, text }) => {
     let menzione = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : text.replace(/@/, '') + '@s.whatsapp.net'
     if (!menzione) throw 'Chi è stupido?'
 
     const list = [
         "Sei così stupido che pensi che 1+1 faccia Finestra", "Hai il QI di un posacenere",
         "Sei talmente scemo che ti sei affogato in una pozzanghera", "Il tuo cervello ha più RAM di un Nokia 3310",
-        "Sei scemo di natura", "Sei un ritardato evolutivo", "Hai il cervello in modalità aereo",
-        "Sei così stupido che fai sembrare intelligente un sasso", "Hai più buchi in testa di una spugna",
-        "Il tuo cervello è in sciopero permanente", "Sei talmente scemo che ti compatisco",
-        "Hai il quoziente intellettivo negativo", "Sei stupido a livelli olimpici"
+        "Sei scemo di natura", "Sei un ritardato evolutivo", "Hai il cervello in modalità aereo"
     ]
 
     let txt = list[Math.floor(Math.random() * list.length)]
     await conn.reply(m.chat, `@${menzione.split('@')[0]} ${txt}`, m, { mentions: [menzione] })
 }
+stupido.command = /^stupido$/i
+stupido.tags = ['fun']
+stupido.group = true
 
 // ====================== .culo ======================
-let culoHandler = async (m, { conn, text }) => {
+let culo = async (m, { conn, text }) => {
     let menzione = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : text.replace(/@/, '') + '@s.whatsapp.net'
     if (!menzione) throw 'A chi guardi il culo?'
 
     const list = [
         "Ha un culo così grande che ci parcheggia la macchina", "Il tuo culo ha più buchi di un colabrodo",
         "Hai il culo così floscio che sembra due buste della spesa", "Hai il culo che sembra due palloni sgonfi",
-        "Ti cade il culo ogni volta che cammini", "Hai un culo che fa ombra", "Il tuo culo è una portaerei",
-        "Hai il culo così grosso che ha il codice postale", "Il tuo culo è più grande della tua intelligenza",
-        "Hai due chiappe che sembrano due pianeti", "Il tuo culo ha la gravità propria"
+        "Ti cade il culo ogni volta che cammini"
     ]
 
     let txt = list[Math.floor(Math.random() * list.length)]
     await conn.reply(m.chat, `@${menzione.split('@')[0]} ${txt}`, m, { mentions: [menzione] })
 }
+culo.command = /^culo$/i
+culo.tags = ['fun']
+culo.group = true
 
-// ====================== .morto .ammazza .cornuto ======================
-let mortoHandler = async (m, { conn, text }) => {
+// ====================== .morto ======================
+let morto = async (m, { conn, text }) => {
     let menzione = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : text.replace(/@/, '') + '@s.whatsapp.net'
     if (!menzione) throw 'Chi è morto?'
-    const list = ["Sei più morto di mio nonno","Sei morto dentro da anni","Sei così morto che puzzi già","Sei morto e non lo sai ancora","Sei un cadavere che cammina","Sei clinicamente morto","Sei più morto della speranza in questo gruppo"]
-    await conn.reply(m.chat, `@${menzione.split('@')[0]} ${list[Math.floor(Math.random()*list.length)]}`, m, { mentions: [menzione] })
-}
 
-let ammazzaHandler = async (m, { conn, text }) => {
+    const list = ["Sei più morto di mio nonno","Sei morto dentro da anni","Sei così morto che puzzi già","Sei morto e non lo sai ancora","Sei un cadavere che cammina"]
+
+    let txt = list[Math.floor(Math.random() * list.length)]
+    await conn.reply(m.chat, `@${menzione.split('@')[0]} ${txt}`, m, { mentions: [menzione] })
+}
+morto.command = /^morto$/i
+morto.tags = ['fun']
+morto.group = true
+
+// ====================== .ammazza ======================
+let ammazza = async (m, { conn, text }) => {
     let menzione = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : text.replace(/@/, '') + '@s.whatsapp.net'
     if (!menzione) throw 'Chi vuoi ammazzare?'
-    const list = ["Ti ammazzo di botte","Ti ammazzo e ti seppellisco nel giardino","Ti ammazzo lentamente con le mie mani","Ti ammazzo e ti faccio sparire","Ti faccio fuori come un cane","Ti ammazzo e poi ti piscio sopra"]
-    await conn.reply(m.chat, `@${menzione.split('@')[0]} ${list[Math.floor(Math.random()*list.length)]}`, m, { mentions: [menzione] })
-}
 
-let cornutoHandler = async (m, { conn, text }) => {
+    const list = ["Ti ammazzo di botte","Ti ammazzo e ti seppellisco nel giardino","Ti ammazzo lentamente con le mie mani","Ti faccio fuori come un cane"]
+
+    let txt = list[Math.floor(Math.random() * list.length)]
+    await conn.reply(m.chat, `@${menzione.split('@')[0]} ${txt}`, m, { mentions: [menzione] })
+}
+ammazza.command = /^ammazza$/i
+ammazza.tags = ['fun']
+ammazza.group = true
+
+// ====================== .cornuto ======================
+let cornuto = async (m, { conn, text }) => {
     let menzione = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : text.replace(/@/, '') + '@s.whatsapp.net'
     if (!menzione) throw 'Chi è cornuto?'
-    const list = ["Curnutu patentatu","Ti crescono le corna più grandi del cervo","Tua moglie ti fa più corna di un toro","Sei cornuto e pure contento","Sei cornuto da record mondiale","Hai le corna che toccano il cielo","Sei cornuto da quando sei nato","Tua moglie ti mette le corna con tutto il quartiere"]
-    await conn.reply(m.chat, `@${menzione.split('@')[0]} ${list[Math.floor(Math.random()*list.length)]}`, m, { mentions: [menzione] })
-}
 
-// ====================== ESPORTAZIONE ======================
-export default {
-    insulta: { command: /^insultaforte$/i, handler: insultaHandler, tags: ['fun'], group: true },
-    roast:   { command: /^roast$/i,   handler: roastHandler,   tags: ['fun'], group: true },
-    sberla:  { command: /^sberla$/i,  handler: sberlaHandler,  tags: ['fun'], group: true },
-    stupido: { command: /^stupido$/i, handler: stupidoHandler, tags: ['fun'], group: true },
-    culo:    { command: /^culo$/i,    handler: culoHandler,    tags: ['fun'], group: true },
-    morto:   { command: /^morto$/i,   handler: mortoHandler,   tags: ['fun'], group: true },
-    ammazza: { command: /^ammazza$/i, handler: ammazzaHandler, tags: ['fun'], group: true },
-    cornuto: { command: /^cornuto$/i, handler: cornutoHandler, tags: ['fun'], group: true }
+    const list = ["Curnutu patentatu","Ti crescono le corna più grandi del cervo","Tua moglie ti fa più corna di un toro","Sei cornuto e pure contento","Sei cornuto da record mondiale"]
+
+    let txt = list[Math.floor(Math.random() * list.length)]
+    await conn.reply(m.chat, `@${menzione.split('@')[0]} ${txt}`, m, { mentions: [menzione] })
 }
+cornuto.command = /^cornuto$/i
+cornuto.tags = ['fun']
+cornuto.group = true
+
+// ====================== ESPORTA TUTTI ======================
+export default { insulta, roast, sberla, stupido, culo, morto, ammazza, cornuto }
