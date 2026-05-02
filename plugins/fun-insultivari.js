@@ -156,7 +156,7 @@ let cornutoHandler = async (m, { conn, text }) => {
 
 // ====================== ESPORTAZIONE ======================
 export default {
-    insulta: { command: /^insulta$/i, handler: insultaHandler, tags: ['fun'], group: true },
+    insulta: { command: /^insultaforte$/i, handler: insultaHandler, tags: ['fun'], group: true },
     roast:   { command: /^roast$/i,   handler: roastHandler,   tags: ['fun'], group: true },
     sberla:  { command: /^sberla$/i,  handler: sberlaHandler,  tags: ['fun'], group: true },
     stupido: { command: /^stupido$/i, handler: stupidoHandler, tags: ['fun'], group: true },
