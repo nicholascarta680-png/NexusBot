@@ -86,9 +86,9 @@ let handler = async (m, { conn, text }) => {
 🪐 *Forma:* ${chosen}  
 🕒 *Tempo:* ${timeTaken}s  
 ━━━━━━━━━━━━━━━━━━━━━  
-╔═══════════════════╗  
-║    🔮ᴇʟɪxɪʀ-ʙᴏᴛ🔮  ║  
-╚═══════════════════╝`;
+╔═══════════════╗  
+║ 🔮ᴇʟɪxɪʀ-ʙᴏᴛ🔮  ║  
+╚══════════════╝`;
 
     await conn.sendMessage(m.chat, {
         video: fs.readFileSync(videoPath),
