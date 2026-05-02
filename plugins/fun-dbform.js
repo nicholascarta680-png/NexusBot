@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { performance } from 'perf_hooks';
 
-const BASE_PATH = './media/giftrasformazioni';
+const BASE_PATH = './storage/giftrasformazioni';
 
 function pickRandom(list) {
   return list[Math.floor(Math.random() * list.length)];
@@ -15,7 +15,7 @@ function wait(ms) {
 
 let handler = async (m, { conn, text }) => {
   try {
-    let mention = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : text.replace(/@/, '') + '@s.whatsapp.net';
+    let mention = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : text.replace(/@/, '') + '@s.whatsapp.net';
     
     if (!mention || mention.length < 15) mention = m.sender;
 
@@ -31,45 +31,40 @@ let handler = async (m, { conn, text }) => {
     }
 
     const start = performance.now();
-    await wait(Math.floor(Math.random() * 3000) + 1000); 
+    await wait(Math.floor(Math.random() * 2000) + 1000); 
     const end = performance.now();
     const timeTaken = ((end - start) / 1000).toFixed(2);
 
+    // Lista sincronizzata con il tuo screenshot
     const localVideos = {
-      // --- CANON ---
+      'Beast Form': 'beast_form.mp4',
+      'Fake Super Saiyan': 'fake_super_saiyan.mp4',
+      'Kaioken': 'kaioken.mp4',
+      'Orange Piccolo': 'orange_piccolo.mp4',
       'Oozaru': 'ozaru.mp4',
       'Oozaru Argento': 'ozaru_argento.mp4',
-      'Kaioken': 'kaioken.mp4',
-      'Super Saiyan': 'super_saiyan.mp4',
+      'Oozaru Controllato': 'ozaru_controllato.mp4',
+      'Oozaru d\'Oro': 'ozaru_oro.mp4',
+      'Super Saiyan 5 (AF)': 'ssj5_af.mp4',
+      'Super Saiyan Full Power': 'ssj_full_power.mp4',
       'Super Saiyan di 2° Grado': 'ssj_grado_2.mp4',
       'Super Saiyan di 3° Grado': 'ssj_grado_3.mp4',
-      'Super Saiyan Full Power': 'ssj_full_power.mp4',
+      'Super Saiyan Ikari': 'ssj_ikari.mp4',
+      'Super Saiyan Leggendario': 'ssj_leggendario.mp4',
+      'Super Saiyan Rose': 'ssj_rose.mp4',
+      'Super Saiyan': 'super_saiyan.mp4',
       'Super Saiyan 2': 'super_saiyan_2.mp4',
       'Super Saiyan 3': 'super_saiyan_3.mp4',
-      'Super Saiyan God': 'super_saiyan_god.mp4',
-      'Super Saiyan Blue': 'super_saiyan_blue.mp4',
-      'Super Saiyan Blue Kaioken': 'super_saiyan_blue_kaioken.mp4',
+      'Super Saiyan 4 (GT)': 'super_saiyan_4_gt.mp4',
       'Super Saiyan Blue Evolution': 'super_saiyan_blue_evolution.mp4',
-      'Ultra Istinto Incompleto (Omen)': 'ultra_istinto_omen.mp4',
-      'Ultra Istinto Perfezionato': 'ultra_istinto_mastered.mp4',
+      'Super Saiyan Blue Kaioken': 'super_saiyan_blue_kaioken.mp4',
+      'Super Saiyan God': 'super_saiyan_god.mp4',
+      'Super Saiyan God SSJ': 'super_saiyan_god_ssj.mp4',
+      'Super Saiyan Kaioken': 'super_saiyan_kaioken.mp4',
+      'Ultimate Form': 'ultimate_form.mp4',
       'Ultra Ego': 'ultra_ego.mp4',
-      'Gohan Beast': 'beast_form.mp4',
-      'Orange Piccolo': 'orange_piccolo.mp4',
-      'Potenziale Risvegliato (Ultimate)': 'ultimate_form.mp4',
-      'Super Saiyan Rose': 'ssj_rose.mp4',
-      'Super Saiyan Ikari (Rabbia)': 'ssj_ikari.mp4',
-      'Super Saiyan Leggendario (Berserk)': 'ssj_leggendario.mp4',
-
-      // --- NON CANON (GT / MOVIE / HEROES) ---
-      'Falso Super Saiyan': 'fake_super_saiyan.mp4',
-      'Super Saiyan 4': 'super_saiyan_4_gt.mp4',
-      'Super Saiyan 4 (Daima)': 'super_saiyan_4_daima.mp4',
-      'Super Saiyan 4 Limite Superato': 'ssj4_lb.mp4',
-      'Super Saiyan 5 (AF)': 'ssj5_af.mp4',
-      'Oozaru d\'Oro': 'ozaru_oro.mp4',
-      'Super Saiyan God Super Saiyan (Universale)': 'ssj_blue_universal.mp4',
-      'Super Saiyan Rose Full Power': 'ssj_rose_fp.mp4',
-      'Super Saiyan 3 (Rose)': 'ssj3_rose.mp4'
+      'Ultra Istinto Mastered': 'ultra_istinto_mastered.mp4',
+      'Ultra Istinto Omen': 'ultra_istinto_omen.mp4'
     };
 
     const keys = Object.keys(localVideos);
@@ -78,7 +73,7 @@ let handler = async (m, { conn, text }) => {
     const videoPath = path.join(BASE_PATH, videoFile);
 
     if (!fs.existsSync(videoPath)) {
-      await m.reply(`⚠️ Errore critico: La forma *${chosen}* non è ancora stata sbloccata (Video mancante).`, null, { mentions });
+      await m.reply(`⚠️ Errore: Il file ${videoFile} non esiste nella cartella.`, null, { mentions });
       return;
     }
 
@@ -89,7 +84,7 @@ let handler = async (m, { conn, text }) => {
 🕒 *Tempo:* ${timeTaken}s  
 ━━━━━━━━━━━━━━━━━━━━━  
 ╔═══════════════════╗  
-║    🔮𝓔𝓵𝓲𝔁𝓲𝓻-𝓑𝓸𝓽🔮  ║  
+║    🔮ᴇʟɪxɪʀ-ʙᴏᴛ🔮  ║  
 ╚═══════════════════╝`;
 
     await conn.sendMessage(
@@ -97,15 +92,14 @@ let handler = async (m, { conn, text }) => {
       {
         video: { url: videoPath },
         caption: finalMsg,
-        mentions,
-        gifPlayback: true // Opzionale: lo invia come GIF se preferisci
+        mentions
       },
       { quoted: m }
     );
 
   } catch (err) {
     console.error(err);
-    await m.reply('⚠️ Il tuo corpo non ha retto la potenza della trasformazione...');
+    await m.reply('⚠️ Errore durante la trasformazione.');
   }
 };
 
