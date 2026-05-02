@@ -3,7 +3,8 @@ import fs from 'fs';
 import path from 'path';
 import { performance } from 'perf_hooks';
 
-const BASE_PATH = './storage/giftrasformazioni';
+// ASSICURATI che questa cartella esista nel tuo server locale!
+const BASE_PATH = './media/giftrasformazioni'; 
 
 function pickRandom(list) {
   return list[Math.floor(Math.random() * list.length)];
@@ -16,7 +17,6 @@ function wait(ms) {
 let handler = async (m, { conn, text }) => {
   try {
     let mention = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : text.replace(/@/, '') + '@s.whatsapp.net';
-    
     if (!mention || mention.length < 15) mention = m.sender;
 
     const mentions = [mention];
@@ -26,16 +26,16 @@ let handler = async (m, { conn, text }) => {
 
     const progresses = ['30%', '50%', '70%', '100%'];
     for (const p of progresses) {
-      await wait(800);
+      await wait(500);
       await m.reply(`🔍 *Progresso:* ${p}`, null, { mentions });
     }
 
     const start = performance.now();
-    await wait(Math.floor(Math.random() * 2000) + 1000); 
+    await wait(1000); 
     const end = performance.now();
     const timeTaken = ((end - start) / 1000).toFixed(2);
 
-    // Lista sincronizzata con il tuo screenshot
+    // Nomi dei file IDENTICI allo screenshot di GitHub
     const localVideos = {
       'Beast Form': 'beast_form.mp4',
       'Fake Super Saiyan': 'fake_super_saiyan.mp4',
@@ -70,10 +70,13 @@ let handler = async (m, { conn, text }) => {
     const keys = Object.keys(localVideos);
     const chosen = pickRandom(keys);
     const videoFile = localVideos[chosen];
-    const videoPath = path.join(BASE_PATH, videoFile);
+    
+    // Costruiamo il percorso
+    const videoPath = path.join(process.cwd(), 'media', 'giftrasformazioni', videoFile);
 
+    // Controllo esistenza file
     if (!fs.existsSync(videoPath)) {
-      await m.reply(`⚠️ Errore: Il file ${videoFile} non esiste nella cartella.`, null, { mentions });
+      await m.reply(`⚠️ Errore: Il file *${videoFile}* non è stato trovato nel server.\nPercorso cercato: \`${videoPath}\``, null, { mentions });
       return;
     }
 
@@ -87,19 +90,15 @@ let handler = async (m, { conn, text }) => {
 ║    🔮ᴇʟɪxɪʀ-ʙᴏᴛ🔮  ║  
 ╚═══════════════════╝`;
 
-    await conn.sendMessage(
-      m.chat,
-      {
-        video: { url: videoPath },
+    await conn.sendMessage(m.chat, {
+        video: fs.readFileSync(videoPath),
         caption: finalMsg,
         mentions
-      },
-      { quoted: m }
-    );
+    }, { quoted: m });
 
   } catch (err) {
     console.error(err);
-    await m.reply('⚠️ Errore durante la trasformazione.');
+    await m.reply('⚠️ Errore critico durante la trasformazione.');
   }
 };
 
