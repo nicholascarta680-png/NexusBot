@@ -3,7 +3,6 @@ import fs from 'fs';
 import path from 'path';
 import { performance } from 'perf_hooks';
 
-// ASSICURATI che questa cartella esista nel tuo server locale!
 const BASE_PATH = './media/giftrasformazioni'; 
 
 function pickRandom(list) {
@@ -16,18 +15,16 @@ function wait(ms) {
 
 let handler = async (m, { conn, text }) => {
   try {
-    let mention = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : text.replace(/@/, '') + '@s.whatsapp.net';
-    if (!mention || mention.length < 15) mention = m.sender;
+    // FIX: Logica per identificare correttamente chi si trasforma (Tag, Risposta o Te stesso)
+    let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : m.sender;
+    let userId = who.split('@')[0];
 
-    const mentions = [mention];
-    const userId = mention.split('@')[0];
-
-    await m.reply('⏳ *Inizio processo di TRASFORMAZIONE...*', null, { mentions });
+    await m.reply('⏳ *Inizio processo di TRASFORMAZIONE...*', null, { mentions: [who] });
 
     const progresses = ['30%', '50%', '70%', '100%'];
     for (const p of progresses) {
       await wait(500);
-      await m.reply(`🔍 *Progresso:* ${p}`, null, { mentions });
+      // Feedback visivo opzionale durante il caricamento
     }
 
     const start = performance.now();
@@ -35,7 +32,6 @@ let handler = async (m, { conn, text }) => {
     const end = performance.now();
     const timeTaken = ((end - start) / 1000).toFixed(2);
 
-    // Nomi dei file IDENTICI allo screenshot di GitHub
     const localVideos = {
       'Beast Form': 'beast_form.mp4',
       'Fake Super Saiyan': 'fake_super_saiyan.mp4',
@@ -71,15 +67,14 @@ let handler = async (m, { conn, text }) => {
     const chosen = pickRandom(keys);
     const videoFile = localVideos[chosen];
     
-    // Costruiamo il percorso
     const videoPath = path.join(process.cwd(), 'media', 'giftrasformazioni', videoFile);
 
-    // Controllo esistenza file
     if (!fs.existsSync(videoPath)) {
-      await m.reply(`⚠️ Errore: Il file *${videoFile}* non è stato trovato nel server.\nPercorso cercato: \`${videoPath}\``, null, { mentions });
+      await m.reply(`⚠️ Errore: Il file *${videoFile}* non esiste.`);
       return;
     }
 
+    // FIX: Messaggio finale con menzione funzionante
     const finalMsg = `*✔️ TRASFORMAZIONE COMPLETATA*  
 ━━━━━━━━━━━━━━━━━━━━━  
 👤 *Guerriero:* @${userId}  
@@ -93,17 +88,17 @@ let handler = async (m, { conn, text }) => {
     await conn.sendMessage(m.chat, {
         video: fs.readFileSync(videoPath),
         caption: finalMsg,
-        mentions
+        mentions: [who] // Necessario per rendere il @userId cliccabile
     }, { quoted: m });
 
   } catch (err) {
     console.error(err);
-    await m.reply('⚠️ Errore critico durante la trasformazione.');
+    await m.reply('⚠️ Errore durante la trasformazione.');
   }
 };
 
 handler.help = ['saiyan']
 handler.tags = ['fun']
-handler.command = /^(saiyan|trasformati)$/i
+handler.command = /^(saiyan)$/i // Accetta solo .saiyan
 
 export default handler;
