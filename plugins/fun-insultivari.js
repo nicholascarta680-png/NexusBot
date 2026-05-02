@@ -1,22 +1,17 @@
-// Plug-in creato da elixir
+// Plug-in creato da elixir 
 
 let handler = async (m, { conn, text, command }) => {
     if (!m.isGroup) throw 'Solo nei gruppi!'
 
-    // Logica comune per trovare l'utente menzionato o citato
     let menzione = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : text.replace(/@/, '') + '@s.whatsapp.net'
     
-    // Se non c'è una menzione e non è un numero valido, errore
     if (!menzione || menzione.length < 15) throw `Chi vuoi colpire con il comando *${command}*?`
-
-    // Protezione per il bot
     if (menzione === conn.user.jid) return conn.reply(m.chat, `Non ci provare con me, pivello.`, m)
 
-    let txt = ""
     let list = []
 
     switch (command) {
-        case 'insulta':
+        case 'insultaforte':
             list = [
                 "sei una testa di minchia patentata", "figghiu ri buttana", "pezzo ri mmerda", "vastasu schifiusu",
                 "scimunito senza neuroni", "curnutu e contentu", "si nu nuddu mmiscatu cu nenti", "va a suca minchia",
@@ -35,7 +30,9 @@ let handler = async (m, { conn, text, command }) => {
                 "sei più inutile di un fornelletto da campo", "sei un handicappato mentale", "sei un sacco di letame",
                 "sei così stupido che fai pena", "sei un fenomeno da baraccone", "sei la feccia della società",
                 "sei un nano mentale", "sei un mongoloide patentato", "sei un deficiente cronico", "sei un ritardato di merda",
-                "sei un povero sfigato", "sei un perdente nato", "sei un fallito su tutta la linea"
+                "sei un povero sfigato", "sei un perdente nato", "sei un fallito su tutta la linea", "scarto biologico",
+                "sei l'unica prova che l'evoluzione può fare retromarcia", "hai il carisma di un calzino bucato",
+                "sei una delusione genetica", "il tuo albero genealogico è un cerchio perfetto", "sei un ammasso di cellule sprecate"
             ]
             break
 
@@ -50,7 +47,11 @@ let handler = async (m, { conn, text, command }) => {
                 "Sei il tipo di persona che viene taggato solo nelle catene", "Sei come WiFi pubblico: tutti ti usano ma nessuno ti vuole",
                 "Hai il carisma di un pezzo di pane raffermo", "Sei così brutto che fai sembrare bello Quasimodo",
                 "La tua esistenza è un filler", "Sei il motivo per cui l'evoluzione a volte torna indietro",
-                "Sei talmente sfigato che perdi anche a testa o croce", "La tua vita è un bug del sistema"
+                "Sei talmente sfigato che perdi anche a testa o croce", "La tua vita è un bug del sistema",
+                "Non sei brutto, sei solo un esperimento estetico fallito", "Sei l'equivalente umano di una notifica di errore",
+                "Hai lo spessore culturale di un post di Facebook", "Sei così insignificante che anche Google non ti trova",
+                "La tua opinione è utile quanto una forchetta nel brodo", "Sei il trailer di un film che nessuno vuole vedere",
+                "Sei così pigro che l'ultima cosa che hai fatto correre è il naso"
             ]
             break
 
@@ -61,7 +62,12 @@ let handler = async (m, { conn, text, command }) => {
                 "Sberla così forte che ti ho resettato il cervello",
                 "Ti ho schiaffeggiato così forte che hai cambiato continente",
                 "Sberla che ti ha girato la testa di 360°",
-                "Ti ho dato una sberla che ti è partito il dente del giudizio"
+                "Ti ho dato una sberla che ti è partito il dente del giudizio",
+                "Ti ho dato un ceffone che ora il tuo orecchio sinistro parla con quello destro",
+                "Ti ho schiaffeggiato così forte che pure tuo nonno ha sentito dolore",
+                "Sberla atomica: ora hai la faccia simmetrica per la prima volta",
+                "Ti ho dato un manrovescio che ti ha fatto ricaricare il cellulare",
+                "Schiaffo così potente che ora parli in aramaico antico"
             ]
             break
 
@@ -69,7 +75,11 @@ let handler = async (m, { conn, text, command }) => {
             list = [
                 "Sei così stupido che pensi che 1+1 faccia Finestra", "Hai il QI di un posacenere",
                 "Sei talmente scemo che ti sei affogato in una pozzanghera", "Il tuo cervello ha più RAM di un Nokia 3310",
-                "Sei scemo di natura", "Sei un ritardato evolutivo", "Hai il cervello in modalità aereo"
+                "Sei scemo di natura", "Sei un ritardato evolutivo", "Hai il cervello in modalità aereo",
+                "Sei così stupido che cerchi di leggere un libro sottosopra", "Hai i neuroni in sciopero permanente",
+                "Sei così scemo che se ti dicono 'fai il serio' vai in crash", "Il tuo cervello è un optional che non hai riscattato",
+                "Sei così stupido che hai cercato di scalare un muro di nebbia", "Hai la profondità mentale di un piattino da caffè",
+                "Sei così ottuso che non entri nemmeno in un cerchio", "Il tuo unico neurone sta giocando a nascondino e sta perdendo"
             ]
             break
 
@@ -77,20 +87,32 @@ let handler = async (m, { conn, text, command }) => {
             list = [
                 "Ha un culo così grande che ci parcheggia la macchina", "Il tuo culo ha più buchi di un colabrodo",
                 "Hai il culo così floscio che sembra due buste della spesa", "Hai il culo che sembra due palloni sgonfi",
-                "Ti cade il culo ogni volta che cammini"
+                "Ti cade il culo ogni volta che cammini", "Hai il culo così piatto che sembra una tavola da surf",
+                "Il tuo culo è così largo che serve il permesso di sosta", "Hai più cellulite tu che un barattolo di ricotta",
+                "Culo così cadente che devi stare attento a non inciamparci", "Hai un sedere che sembra un sacco di patate dimenticato sotto la pioggia"
             ]
             break
 
         case 'morto':
-            list = ["Sei più morto di mio nonno", "Sei morto dentro da anni", "Sei così morto che puzzi già", "Sei morto e non lo sai ancora", "Sei un cadavere che cammina"]
+            list = [
+                "Sei più morto di mio nonno", "Sei morto dentro da anni", "Sei così morto che puzzi già", 
+                "Sei morto e non lo sai ancora", "Sei un cadavere che cammina", "La tua vitalità è pari a quella di un sasso",
+                "Sei così spento che i necrofori ti seguono per strada", "Hai lo sguardo di uno che è morto tre giorni fa e non l'hanno ancora avvisato",
+                "Sei un'anima in pena senza nemmeno il corpo", "Sei così moscio che sembri un zombie vegetariano"
+            ]
             break
 
         case 'ammazza':
-            list = ["Ti ammazzo di botte", "Ti ammazzo e ti seppellisco nel giardino", "Ti ammazzo lentamente con le mie mani", "Ti faccio fuori come un cane"]
+            list = [
+                "Ti ammazzo di botte", "Ti ammazzo e ti seppellisco nel giardino", "Ti ammazzo lentamente con le mie mani", 
+                "Ti faccio fuori come un cane", "Ti scavo la fossa con un cucchiaino", "Ti faccio sparire meglio dei calzini in lavatrice",
+                "Ti ammazzo così forte che i tuoi antenati si chiederanno cosa è successo", "Ti cancello dall'esistenza con un colpo solo",
+                "Ti faccio diventare un ricordo sbiadito", "Ti ammazzo di insulti finché non chiedi pietà"
+            ]
             break
     }
 
-    txt = list[Math.floor(Math.random() * list.length)]
+    let txt = list[Math.floor(Math.random() * list.length)]
     await conn.reply(m.chat, `@${menzione.split('@')[0]} ${txt}`, m, { mentions: [menzione] })
 }
 
