@@ -94,9 +94,9 @@ let handler = async (m, { conn, text, command }) => {
     await conn.reply(m.chat, `@${menzione.split('@')[0]} ${txt}`, m, { mentions: [menzione] })
 }
 
-handler.help = ['insulta', 'roast', 'sberla', 'stupido', 'culo', 'morto', 'ammazza']
+handler.help = ['insultaforte', 'roast', 'sberla', 'stupido', 'culo', 'morto', 'ammazza']
 handler.tags = ['fun']
-handler.command = /^(insulta|roast|sberla|stupido|culo|morto|ammazza)$/i
+handler.command = /^(insultaforte|roast|sberla|stupido|culo|morto|ammazza)$/i
 handler.group = true
 
 export default handler
