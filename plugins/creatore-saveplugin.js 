@@ -1,0 +1,37 @@
+import fs from 'fs'
+import { join } from 'path'
+
+let handler = async (m, { conn, text, args, usedPrefix, command, __dirname }) => {
+    if (/saveplugin/i.test(command)) {
+        if (!text) throw `*Uhm.. che nome do al plugin?*`
+        if (!m.quoted || !m.quoted.text) throw `*Rispondi al messaggio che contiene il codice!*`
+        
+        let path = join(__dirname, '../plugins/', `${text}.js`)
+        await fs.writeFileSync(path, m.quoted.text)
+        
+        return conn.reply(m.chat, `✅ *Plugin salvato con successo!*\n\n*Percorso:* plugins/${text}.js`, m)
+    }
+
+    if (/deleteplugin/i.test(command)) {
+        let pluginsDir = join(__dirname, '../plugins/')
+        let ar = fs.readdirSync(pluginsDir).filter(v => v.endsWith('.js'))
+        let ar1 = ar.map(v => v.replace('.js', ''))
+        
+        if (!text) throw `*Comando errato. Esempio:*\n${usedPrefix}${command} MENU_menu`
+        
+        let target = args[0]
+        if (!ar1.includes(target)) return m.reply(`*🗃️ Il plugin "${target}" non esiste!*`)
+        
+        const file = join(pluginsDir, target + '.js')
+        fs.unlinkSync(file)
+        
+        return conn.reply(m.chat, `🗑️ *Plugin eliminato correttamente:*\n_plugins/${target}.js_`, m)
+    }
+}
+
+handler.help = ['saveplugin <nome>', 'deleteplugin <nome>']
+handler.tags = ['owner']
+handler.command = /^(saveplugin|deleteplugin)$/i
+handler.rowner = true
+
+export default handler
