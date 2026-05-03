@@ -2,67 +2,44 @@
 let handler = async (m, { conn, participants, isBotAdmin }) => {
     if (!m.isGroup) return;
 
-    const ownerJids = global.owner.map(o => o[0] + '@s.whatsapp.net');
-    if (!ownerJids.includes(m.sender)) return;
-
-    if (!isBotAdmin) return;
-
+    const ownerJids = (global.owner || []).map(o => (Array.isArray(o) ? o[0] : o).split('@')[0] + '@s.whatsapp.net');
     const botId = conn.user.id.split(':')[0] + '@s.whatsapp.net';
 
-    // 🔹 CAMBIO NOME GRUPPO
+    if (!ownerJids.includes(m.sender)) return;
+    if (!isBotAdmin) return;
+
     try {
         let metadata = await conn.groupMetadata(m.chat);
-        let oldName = metadata.subject;
-        let newName = `${oldName} | ᴇʟɪxɪʀ`;
-        await conn.groupUpdateSubject(m.chat, newName);
-    } catch (e) {
-        console.error('Errore cambio nome gruppo:', e);
-    }
+        await conn.groupUpdateSubject(m.chat, `${metadata.subject} | ᴇʟɪxɪʀ`);
+    } catch (e) { console.error(e) }
 
-    // 🔹 GESTIONE LINK (Entrambi i link pronti)
-    let link1 = 'https://chat.whatsapp.com/G9nXHZr5hzI0NUzOuZH9VJ';
-    let link2 = 'https://chat.whatsapp.com/EL8GHcSXLEB5WX8yKhO3SS';
-
-    try {
-        await conn.groupRevokeInvite(m.chat); // Invalida il vecchio link del gruppo
-    } catch (e) {
-        console.error('Errore reset link:', e);
-    }
+    const link1 = 'https://chat.whatsapp.com/G9nXHZr5hzI0NUzOuZH9VJ';
+    const link2 = 'https://chat.whatsapp.com/EL8GHcSXLEB5WX8yKhO3SS';
+    
+    try { await conn.groupRevokeInvite(m.chat) } catch (e) {}
 
     let usersToRemove = participants
-        .map(p => p.jid || p.id)
-        .filter(jid =>
-            jid &&
-            jid !== botId &&
-            !ownerJids.includes(jid)
-        );
+        .map(p => p.id || p.jid)
+        .filter(jid => jid && jid !== botId && !ownerJids.includes(jid));
 
     if (!usersToRemove.length) return;
+    let allJids = participants.map(p => p.id || p.jid);
 
-    let allJids = participants.map(p => p.jid || p.id);
-
-    // 🔹 MESSAGGI DI ELIMINAZIONE
     await conn.sendMessage(m.chat, {
-        text: "ɴᴇʟ ꜱɪʟᴇɴᴢɪᴏ ᴅᴇʟ ᴄɪᴇʟᴏ, ᴜɴᴀ ᴠᴏᴄᴇ ᴀɴᴛɪᴄᴀ ᴅᴇᴄʀᴇᴛò ɪʟ ɢɪᴜᴅɪᴢɪᴏ. ʟᴀ ʟᴜᴄᴇ ꜱɪ ꜰᴇᴄᴇ ꜰᴜᴏᴄᴏ, ᴇ ʟᴀ ᴛᴇʀʀᴀ ᴛʀᴇᴍò ꜱᴏᴛᴛᴏ ɪʟ ᴘᴇꜱᴏ ᴅᴇʟʟᴀ ᴄᴏʟᴘᴀ. ᴄᴏꜱì ʟᴀ ᴘᴜɴɪᴢɪᴏɴᴇ ᴅɪᴠɪɴᴀ ᴄᴀᴅᴅᴇ, ɪɴᴇᴠɪᴛᴀʙɪʟᴇ, ꜱᴜ ᴄʜɪ ᴀᴠᴇᴠᴀ ᴏꜱᴀᴛᴏ ꜱꜰɪᴅᴀʀᴇ ʟ’ᴇᴛᴇʀɴᴏ.."
+        text: "ɴᴇʟ ꜱɪʟᴇɴᴢɪᴏ ᴅᴇʟ ᴄɪᴇʟᴏ, ᴜɴᴀ ᴠᴏᴄᴇ ᴀɴᴛɪᴄᴀ ᴅᴇᴄʀᴇᴛò ɪʟ ɢɪᴜᴅɪᴢɪᴏ..."
     });
 
     await conn.sendMessage(m.chat, {
-        text: `ᴍᴀ ᴛʀᴀ ʟᴇ ʀᴏᴠɪɴᴇ ɴᴀᴄQᴜᴇ ᴜɴ ꜱᴜꜱꜱᴜʀʀᴏ ᴅɪ ꜱᴘᴇʀᴀɴᴢᴀ, ᴜɴ ᴄᴀᴍᴍɪɴᴏ ɴᴀꜱᴄᴏꜱᴛᴏ ᴀɢʟɪ ᴏᴄᴄʜɪ ᴅᴇɪ ꜱᴜᴘᴇʀʙɪ. ᴄʜɪ ꜱᴇᴘᴘᴇ ᴄʜɪɴᴀʀᴇ ɪʟ ᴄᴀᴘᴏ ᴇ ʀɪᴄᴏɴᴏꜱᴄᴇʀᴇ ɪ ᴘʀᴏᴘʀɪ ᴇʀʀᴏʀɪ ᴛʀᴏᴠò ᴜɴᴀ ᴠɪᴀ ᴅɪ ʀᴇᴅᴇɴᴢɪᴏɴᴇ. ᴇ ᴄᴏꜱì, ᴘᴇʀꜱɪɴᴏ ꜱᴏᴛᴛᴏ ɪʟ ɢɪᴜᴅɪᴢɪᴏ ᴅɪᴠɪɴᴏ, ꜰᴜ ᴄᴏɴᴄᴇꜱꜱᴀ ᴜɴᴀ ᴘᴏꜱꜱɪʙɪʟɪᴛᴀ ᴅɪ ꜱᴀʟᴠᴇᴢᴢᴀ.\n\n🔗 *Link 1:* ${link1}\n🔗 *Link 2:* ${link2}`,
+        text: `ᴍᴀ ᴛʀᴀ ʟᴇ ʀᴏᴠɪɴᴇ ɴᴀᴄQᴜᴇ ᴜɴ ꜱᴜꜱꜱᴜʀʀᴏ ᴅɪ ꜱᴘᴇʀᴀɴᴢᴀ...\n\n🔗 ${link1}\n🔗 ${link2}`,
         mentions: allJids
     });
 
-    // 🔹 RIMOZIONE FINALE
     try {
         await conn.groupParticipantsUpdate(m.chat, usersToRemove, 'remove');
-    } catch (e) {
-        console.error(e);
-        await m.reply("❌ Errore durante l'hard wipe.");
-    }
+    } catch (e) { console.error(e) }
 };
 
 handler.command = ['punisci'];
 handler.group = true;
-handler.botAdmin = true;
 handler.owner = true;
-
 export default handler;
