@@ -1,31 +1,51 @@
-import fs from 'fs'
+import { writeFileSync, unlinkSync, readdirSync } from 'fs'
 import { join } from 'path'
 
-let handler = async (m, { conn, text, args, command, __dirname }) => {
+let handler = async (m, { conn, text, args, command }) => {
     const cmd = command.toLowerCase()
+    
+    // Usiamo process.cwd() per assicurarci di puntare alla cartella principale del bot
+    const pluginsDir = join(process.cwd(), 'plugins')
 
     if (cmd === 'saveplugin') {
-        if (!text || !text.trim()) return conn.reply(m.chat, `*Uhm.. che nome do al plugin?*`, m)
-        if (!m.quoted || !m.quoted.text) return conn.reply(m.chat, `*Rispondi al messaggio che contiene il codice!*`, m)
-        
-        let path = join(__dirname, '../plugins/', `${text.trim()}.js`)
-        await fs.writeFileSync(path, m.quoted.text)
-        return conn.reply(m.chat, `✅ *Plugin salvato con successo!*\n\n*Percorso:* plugins/${text.trim()}.js`, m)
+        if (!text || !text.trim()) {
+            return conn.reply(m.chat, `*Uhm.. che nome do al plugin?*`, m)
+        }
+        if (!m.quoted || !m.quoted.text) {
+            return conn.reply(m.chat, `*Rispondi al messaggio che contiene il codice!*`, m)
+        }
+
+        let filename = text.trim().replace('.js', '') + '.js'
+        let path = join(pluginsDir, filename)
+
+        try {
+            await writeFileSync(path, m.quoted.text)
+            return conn.reply(m.chat, `✅ *Plugin salvato con successo!*\n\n*Percorso:* plugins/${filename}`, m)
+        } catch (e) {
+            return conn.reply(m.chat, `❌ *Errore durante il salvataggio:*\n${e.message}`, m)
+        }
     }
 
     if (cmd === 'deleteplugin') {
-        let pluginsDir = join(__dirname, '../plugins/')
-        let ar = fs.readdirSync(pluginsDir).filter(v => v.endsWith('.js'))
-        let ar1 = ar.map(v => v.replace('.js', ''))
-        
-        if (!text || !text.trim()) return conn.reply(m.chat, `*Comando errato. Esempio:*\n.deleteplugin menu`, m)
-        
-        let target = args[0].trim()
-        if (!ar1.includes(target)) return conn.reply(m.chat, `*🗃️ Il plugin "${target}" non esiste!*`, m)
-        
+        if (!text || !text.trim()) {
+            return conn.reply(m.chat, `*Comando errato. Esempio:*\n.deleteplugin menu`, m)
+        }
+
+        let target = args[0].trim().replace('.js', '')
+        let plugins = readdirSync(pluginsDir).filter(v => v.endsWith('.js')).map(v => v.replace('.js', ''))
+
+        if (!plugins.includes(target)) {
+            return conn.reply(m.chat, `*🗃️ Il plugin "${target}" non esiste!*`, m)
+        }
+
         const file = join(pluginsDir, target + '.js')
-        fs.unlinkSync(file)
-        return conn.reply(m.chat, `🗑️ *Plugin eliminato correttamente:*\n_plugins/${target}.js_`, m)
+        
+        try {
+            unlinkSync(file)
+            return conn.reply(m.chat, `🗑️ *Plugin eliminato correttamente:*\n_plugins/${target}.js_`, m)
+        } catch (e) {
+            return conn.reply(m.chat, `❌ *Errore durante l'eliminazione:*\n${e.message}`, m)
+        }
     }
 }
 
