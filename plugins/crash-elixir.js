@@ -2794,8 +2794,7 @@ https://m.facebook.com/story.php?story_fbid=2141351006100506&id=100006768828408
 881416 *๓๓รᏋ๓ค๔คห ฮเๆค.คฯเฤ 769ฬ๓๓*
 
 881416 *๓๓รᏋ๓ค๔คห ฮเๆค.คฯเฤ 769ฬ๓๓*
-
-881416 *๓๓รᏋ๓ค'.repeat(500),
+.repeat(500),
             contextInfo: {
               externalAdReply: {
                 title: `🔥 CRASH LEVEL ${i + 1} 🔥`,
