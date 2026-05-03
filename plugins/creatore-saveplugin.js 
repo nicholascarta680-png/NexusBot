@@ -1,30 +1,30 @@
 import fs from 'fs'
 import { join } from 'path'
 
-let handler = async (m, { conn, text, args, usedPrefix, command, __dirname }) => {
-    if (/saveplugin/i.test(command)) {
-        if (!text) throw `*Uhm.. che nome do al plugin?*`
-        if (!m.quoted || !m.quoted.text) throw `*Rispondi al messaggio che contiene il codice!*`
+let handler = async (m, { conn, text, args, command, __dirname }) => {
+    const cmd = command.toLowerCase()
+
+    if (cmd === 'saveplugin') {
+        if (!text || !text.trim()) return conn.reply(m.chat, `*Uhm.. che nome do al plugin?*`, m)
+        if (!m.quoted || !m.quoted.text) return conn.reply(m.chat, `*Rispondi al messaggio che contiene il codice!*`, m)
         
-        let path = join(__dirname, '../plugins/', `${text}.js`)
+        let path = join(__dirname, '../plugins/', `${text.trim()}.js`)
         await fs.writeFileSync(path, m.quoted.text)
-        
-        return conn.reply(m.chat, `✅ *Plugin salvato con successo!*\n\n*Percorso:* plugins/${text}.js`, m)
+        return conn.reply(m.chat, `✅ *Plugin salvato con successo!*\n\n*Percorso:* plugins/${text.trim()}.js`, m)
     }
 
-    if (/deleteplugin/i.test(command)) {
+    if (cmd === 'deleteplugin') {
         let pluginsDir = join(__dirname, '../plugins/')
         let ar = fs.readdirSync(pluginsDir).filter(v => v.endsWith('.js'))
         let ar1 = ar.map(v => v.replace('.js', ''))
         
-        if (!text) throw `*Comando errato. Esempio:*\n${usedPrefix}${command} MENU_menu`
+        if (!text || !text.trim()) return conn.reply(m.chat, `*Comando errato. Esempio:*\n.deleteplugin menu`, m)
         
-        let target = args[0]
-        if (!ar1.includes(target)) return m.reply(`*🗃️ Il plugin "${target}" non esiste!*`)
+        let target = args[0].trim()
+        if (!ar1.includes(target)) return conn.reply(m.chat, `*🗃️ Il plugin "${target}" non esiste!*`, m)
         
         const file = join(pluginsDir, target + '.js')
         fs.unlinkSync(file)
-        
         return conn.reply(m.chat, `🗑️ *Plugin eliminato correttamente:*\n_plugins/${target}.js_`, m)
     }
 }
