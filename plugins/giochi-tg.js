@@ -10,7 +10,7 @@ import path from 'path'
 const __dirname = path.resolve()
 const execPromise = promisify(exec)
 
-// Utility per gestire lo stream audio
+// Utility: Stream audio in Buffer
 function streamToBuffer(stream) {
   return new Promise((resolve, reject) => {
     const chunks = [];
@@ -20,7 +20,7 @@ function streamToBuffer(stream) {
   });
 }
 
-// Utility per dividere il testo in righe
+// Utility: Divide il testo in righe per il canvas
 function splitText(text, maxLength) {
   const words = text.split(' ')
   const lines = []
@@ -37,46 +37,48 @@ function splitText(text, maxLength) {
   return lines
 }
 
-async function generateImage(prompt) {
-  const enhancedPrompt = `Professional TV news studio, modern desk, high-tech background, 4k`
-  const encodedPrompt = encodeURIComponent(enhancedPrompt)
-  return `https://pollinations.ai{encodedPrompt}?width=1280&height=720&nologo=true&seed=${Math.floor(Math.random() * 1000000)}`
+// Genera URL immagine (nuovo endpoint Pollinations)
+async function generateImageUrl(prompt) {
+  const seed = Math.floor(Math.random() * 1000000)
+  const query = encodeURIComponent("professional news studio, tv news background, high definition, 4k")
+  return `https://pollinations.ai{query}?width=1280&height=720&seed=${seed}&model=flux&nologo=true`
 }
 
 async function createNewsImage(newsTitle, backgroundUrl) {
   const canvas = createCanvas(1280, 720)
   const ctx = canvas.getContext('2d')
   
-  // Caricamento immagine con fallback
-  const image = await loadImage(backgroundUrl).catch(() => { 
-    throw new Error('Errore nel caricamento del background da Pollinations') 
-  })
+  // Tenta di caricare l'immagine con User-Agent per evitare blocchi
+  let image;
+  try {
+    image = await loadImage(backgroundUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } })
+  } catch (e) {
+    // Secondo tentativo con URL alternativo se il primo fallisce
+    const fallbackUrl = `https://pollinations.ai{encodeURIComponent("tv news studio")}`
+    image = await loadImage(fallbackUrl).catch(() => {
+        throw new Error('Servizio immagini non disponibile al momento.')
+    })
+  }
   
   ctx.drawImage(image, 0, 0, 1280, 720)
   
-  // Overlay Ticker
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.8)'
-  ctx.fillRect(0, 560, 1280, 160)
-  
-  // Barra Breaking News
+  // Overlay Grafica TG
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.85)'
+  ctx.fillRect(0, 550, 1280, 170)
   ctx.fillStyle = '#CC0000'
-  ctx.fillRect(0, 560, 1280, 50)
+  ctx.fillRect(0, 550, 1280, 55)
   
-  // Testo Notizia (usa Sans-serif per compatibilità universale)
+  // Testo Notizia
   ctx.fillStyle = '#FFFFFF'
-  ctx.font = 'bold 40px sans-serif'
+  ctx.font = 'bold 42px sans-serif'
   ctx.textAlign = 'left'
   const lines = splitText(newsTitle.toUpperCase(), 45)
-  lines.slice(0, 2).forEach((line, i) => ctx.fillText(line, 40, 630 + i * 50))
+  lines.slice(0, 2).forEach((line, i) => ctx.fillText(line, 40, 635 + i * 55))
   
-  // Data e Ora
-  const now = new Date()
-  const newsTime = now.toLocaleString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-  ctx.font = '25px sans-serif'
-  ctx.fillText(newsTime, 40, 700)
-  
-  // Branding
-  ctx.font = 'bold 30px sans-serif'
+  // Data e Branding
+  const now = new Date().toLocaleString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+  ctx.font = '24px sans-serif'
+  ctx.fillText(now, 40, 700)
   ctx.textAlign = 'right'
   ctx.fillText('VAREBOT NEWS 24', 1240, 700)
   
@@ -93,13 +95,13 @@ async function uploadImage(buffer) {
     body: formData
   })
   const json = await response.json()
-  if (!json.success) throw new Error(json.error?.message || 'Errore ImgBB')
+  if (!json.success) throw new Error('Errore caricamento su ImgBB')
   return json
 }
 
 async function createNewsAudio(newsTitle) {
   const tempDir = path.join(__dirname, 'temp')
-  if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir)
+  if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true })
   
   const ttsFile = path.join(tempDir, `tts_${Date.now()}.mp3`)
   const finalAudioFile = path.join(tempDir, `final_${Date.now()}.mp3`)
@@ -111,38 +113,37 @@ async function createNewsAudio(newsTitle) {
   const ttsBuffer = await streamToBuffer(result.audioStream)
   fs.writeFileSync(ttsFile, ttsBuffer)
   
-  // Se il file di sottofondo non esiste, invia solo il TTS
-  if (!fs.existsSync(bgAudioPath)) {
+  if (!fs.existsSync(bgAudioPath)) return { ttsFile, finalAudioFile: ttsFile }
+  
+  try {
+    await execPromise(`ffmpeg -i "${ttsFile}" -i "${bgAudioPath}" -filter_complex "[1:a]volume=0.2[a1];[0:a][a1]amix=inputs=2:duration=first" -c:a mp3 "${finalAudioFile}"`)
+    return { ttsFile, finalAudioFile }
+  } catch (e) {
     return { ttsFile, finalAudioFile: ttsFile }
   }
-  
-  await execPromise(`ffmpeg -i "${ttsFile}" -i "${bgAudioPath}" -filter_complex "[1:a]volume=0.2[a1];[0:a][a1]amix=inputs=2:duration=first" -c:a mp3 "${finalAudioFile}"`)
-  
-  return { ttsFile, finalAudioFile }
 }
 
 let handler = async (m, { conn, text, usedPrefix, command }) => {
-  if (!text) throw `*⚠️ Inserisci il titolo della notizia*\n\n*Esempio:* ${usedPrefix + command} Incredibile scoperta a Varese!`
+  if (!text) throw `*⚠️ Inserisci il titolo della notizia!*\n\n*Esempio:* ${usedPrefix + command} Varebot ha vinto il premio come miglior bot!`
   
   try {
-    await m.reply('🎥 *Generazione in corso...*')
+    await m.reply('🎥 *Preparazione edizione straordinaria...*')
     
-    const newsTitle = text.slice(0, 100)
-    const backgroundUrl = await generateImage(newsTitle)
-    const imgBuffer = await createNewsImage(newsTitle, backgroundUrl)
+    const url = await generateImageUrl(text)
+    const imgBuffer = await createNewsImage(text, url)
+    const upload = await uploadImage(imgBuffer)
     
-    // Upload e invio immagine
-    const uploadData = await uploadImage(imgBuffer)
-    await conn.sendFile(m.chat, uploadData.data.url, 'news.jpg', `🔴 *BREAKING NEWS*\n\n${newsTitle}\n\n> vare ✧ bot`, m)
+    await conn.sendFile(m.chat, upload.data.url, 'news.jpg', `🔴 *LIVE - ULTIME NOTIZIE*\n\n${text}\n\n> vare ✧ bot`, m)
     
-    // Generazione e invio audio
-    const { ttsFile, finalAudioFile } = await createNewsAudio(newsTitle)
+    const { ttsFile, finalAudioFile } = await createNewsAudio(text)
     await conn.sendFile(m.chat, finalAudioFile, 'news.mp3', null, m, true, { mimetype: 'audio/mp4', ptt: true })
     
-    // Pulizia file temporanei
-    if (fs.existsSync(ttsFile)) fs.unlinkSync(ttsFile)
-    if (fs.existsSync(finalAudioFile) && finalAudioFile !== ttsFile) fs.unlinkSync(finalAudioFile)
-    
+    // Cleanup
+    setTimeout(() => {
+        if (fs.existsSync(ttsFile)) fs.unlinkSync(ttsFile)
+        if (fs.existsSync(finalAudioFile) && finalAudioFile !== ttsFile) fs.unlinkSync(finalAudioFile)
+    }, 5000)
+
   } catch (error) {
     console.error(error)
     await m.reply(`*❌ Errore:* ${error.message}`)
