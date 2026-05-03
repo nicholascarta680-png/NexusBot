@@ -1,14 +1,15 @@
 let handler = async (m, { conn, usedPrefix, command }) => {
   
-  // Se il comando eseguito è 'git' o 'insta', manda solo il link e chiudi la funzione
+  let ownerNumber = global.owner[0][0]
+  let ownerName = global.owner[0][1]
+
   if (command === 'git') {
-    return await conn.reply(m.chat, '💻 *GitHub:* https://github.com/Elixir-png/Elixir-Bot1.git', m)
+    return await conn.reply(m.chat, `💻 *GitHub/Repo:* ${global.repobot}`, m)
   }
   if (command === 'insta') {
-    return await conn.reply(m.chat, '📸 *Instagram:* instagram.com/eli.xir_gg', m)
+    return await conn.reply(m.chat, `📸 *Instagram:* ${global.insta}`, m)
   }
 
-  // Se invece il comando è 'owner' o 'creatore', manda il box con i bottoni
   let mention = `@${m.sender.split('@')[0]}`
   let text = `
 *╭───╼ ⚡ ╾───╮*
@@ -19,25 +20,26 @@ let handler = async (m, { conn, usedPrefix, command }) => {
 ecco i riferimenti ufficiali del mio creatore.
 
 *┏━━━━━━━━━━━━━━━━┓*
-*┃* 👤 *OWNER:* Elixir
+*┃* 👤 *OWNER:* ${ownerName}
+*┃* 📱 *CONTATTO:* wa.me/${ownerNumber}
 *┃* 🪐 *STATUS:* Online
 *┃* 💻 *DEV:* JavaScript / Node.js
 *┗━━━━━━━━━━━━━━━━┛*
 
 ━━━━━━━━━━━━━━━━━━━━
-   *😈 ᴇʟɪxɪʀ ᴅᴏᴍɪɴᴀ ⚡*
+   *😈 ${ownerName} ᴅᴏᴍɪɴᴀ ⚡*
 ━━━━━━━━━━━━━━━━━━━━`.trim()
 
   const buttons = [
     { buttonId: `${usedPrefix}menu`, buttonText: { displayText: '🛡️ MENU' }, type: 1 },
     { buttonId: `${usedPrefix}ping`, buttonText: { displayText: '⚡ STATUS' }, type: 1 },
-    { buttonId: `${usedPrefix}git`, buttonText: { displayText: '💻 GITHUB' }, type: 1 },
+    { buttonId: `${usedPrefix}git`, buttonText: { displayText: '💻 REPO' }, type: 1 },
     { buttonId: `${usedPrefix}insta`, buttonText: { displayText: '📸 INSTAGRAM' }, type: 1 }
   ]
 
   const buttonMessage = {
       text: text,
-      footer: 'ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴇʟɪxɪʀ ʙᴏᴛ',
+      footer: `ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${global.nomebot}`,
       buttons: buttons,
       headerType: 1,
       mentions: [m.sender]
@@ -48,7 +50,6 @@ ecco i riferimenti ufficiali del mio creatore.
 
 handler.help = ['owner']
 handler.tags = ['info']
-// Registriamo tutti i comandi necessari
-handler.command = ['owner', 'creatore', 'git', 'insta'] 
+handler.command = ['owner','creatore','git','insta'] 
 
 export default handler
