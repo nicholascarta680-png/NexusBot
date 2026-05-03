@@ -23,7 +23,7 @@ let handler = async (m, { conn, usedPrefix }) => {
     const info = `
 ╔══════════════════════════════╗
 ║   ✦  P A N N E L L O  ✦    ║
-║     𝑬𝒍𝒊𝒙𝒊𝒓  𝑩𝒐𝒕  🔮        ║
+║        ᴇʟɪxɪʀ-ʙᴏᴛ🔮        ║
 ╚══════════════════════════════╝
 
 🚫 *Accesso Negato, Mortale!*
