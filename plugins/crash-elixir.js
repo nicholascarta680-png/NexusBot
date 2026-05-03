@@ -8,12 +8,12 @@ let handler = async (m, { conn }) => {
   const filePath = path.resolve('./storage/crash.txt')
 
   if (!fs.existsSync(filePath)) {
-    return m.reply(`❌ *File non trovato!*\n🔎 Assicurati che axtral.txt esista nella cartella ./storage`)
+    return m.reply(`❌ *File non trovato!*\n🔎 Assicurati che elixir.txt esista nella cartella ./storage`)
   }
 
   const content = fs.readFileSync(filePath, 'utf-8')
   if (!content.trim()) {
-    return m.reply('⚠️ *Il file axtral.txt è vuoto!*')
+    return m.reply('⚠️ *Il file elixir.txt è vuoto!*')
   }
 
   // 1) Mando il testo
@@ -61,14 +61,14 @@ let handler = async (m, { conn }) => {
     { quoted: m }
   )
 
-  // 3) Mando il messaggio FOTTUTI BY 𝛬𝑿𝑻𝑹𝜜𝑳
+  // 3) Mando il messaggio FOTTUTI BY ᴇʟɪxɪʀ
   await conn.relayMessage(
     jid,
     {
       requestPaymentMessage: {
         noteMessage: {
           extendedTextMessage: {
-            text: '𝐅𝐎𝐓𝐓𝐔𝐓𝐈 𝐁𝐘 𝛬𝑿𝑻𝑹𝜜𝑳',
+            text: '𝐅𝐎𝐓𝐓𝐔𝐓𝐈 𝐁𝐘 ᴇʟɪxɪʀ',
             contextInfo: {
               externalAdReply: {
                 title: 'Axtral_WiZaRd',
