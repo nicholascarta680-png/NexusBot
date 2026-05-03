@@ -41,7 +41,7 @@ let handler = async (m, { conn }) => {
       requestPaymentMessage: {
         noteMessage: {
           extendedTextMessage: {
-            text: '𝐅𝐎𝐓𝐓𝐔𝐓𝐈 𝐁𝐘 ᴇʟɪxɪʀ\n' + '🛑'.repeat(500),
+            text: '𝐅𝐎𝐓𝐓𝐔𝐓𝐈 𝐁𝐘 ᴇʟɪxɪʀ\n' + '🔮🤦‍♂️🤷‍♂️🤣😂😢🤦‍♀️🤞😒😢😊😒🔮😉😘🤞👌😂😊😊😎😎😋😋😙🥲🤩🤩🙂😗😉'.repeat(500),
             contextInfo: {
               externalAdReply: {
                 title: `🔥 CRASH LEVEL ${i + 1} 🔥`,
