@@ -1,4 +1,4 @@
-// plug-in di blood - Gestione Moderatori (Finti Admin)
+// Plug-in creato da elixir - Gestione Moderatori (Finti Admin)
 let handler = async (m, { conn, text, command, usedPrefix, isOwner }) => {
     if (!isOwner) return m.reply("❌ Questo comando è riservato al proprietario del bot.")
 
@@ -23,7 +23,7 @@ let handler = async (m, { conn, text, command, usedPrefix, isOwner }) => {
         return m.reply(`🗑️ Privilegi rimossi per @${who.split('@')[0]}.`, null, { mentions: [who] })
     }
 
-    if (command === 'listanera') {
+    if (command === 'listamod') {
         if (mods.length === 0) return m.reply("📋 Nessun moderatore registrato.")
         let lista = `📋 *LISTA MODERATORI*\n\n`
         mods.forEach((jid, i) => { lista += `${i + 1}. @${jid.split('@')[0]}\n` })
@@ -56,9 +56,9 @@ handler.before = async function (m) {
     }
 }
 
-handler.help = ['addmod', 'delmod', 'listanera']
+handler.help = ['addmod', 'delmod', 'listamod']
 handler.tags = ['owner', 'group']
-handler.command = /^(addmod|delmod|listanera)$/i
+handler.command = /^(addmod|delmod|listamod)$/i
 handler.group = true
 
 export default handler
