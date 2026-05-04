@@ -23,6 +23,12 @@ let handler = async (m, { conn, text, command, usedPrefix, isOwner }) => {
         return m.reply(`🗑️ Privilegi rimossi per @${who.split('@')[0]}.`, null, { mentions: [who] })
     }
 
+    if (command === 'delallmod') {
+        if (mods.length === 0) return m.reply("📋 Non ci sono moderatori da rimuovere.")
+        global.db.data.chats[chatId].moderatori = []
+        return m.reply(`🗑️ *Reset completato.*\nTutti i moderatori sono stati rimossi da questo gruppo.`)
+    }
+
     if (command === 'listamod') {
         if (mods.length === 0) return m.reply("📋 Nessun moderatore registrato.")
         let lista = `📋 *LISTA MODERATORI*\n\n`
@@ -36,29 +42,25 @@ handler.before = async function (m) {
     if (!m.isGroup || !global.db.data.chats[m.chat]?.moderatori) return
 
     let mods = global.db.data.chats[m.chat].moderatori
-    if (!mods.includes(m.sender)) return // Se non è mod, non fare nulla
+    if (!mods.includes(m.sender)) return 
 
-    // Lista dei comandi proibiti ai moderatori (aggiungi qui quelli che vuoi bloccare)
     const comandiProibiti = /^(promote|demote|admin|unadmin|addadmin|deladmin)/i
     
-    // Estraiamo il comando dal testo (es: .promote -> promote)
     let body = m.text ? m.text.trim() : ''
     let isCommand = body.startsWith('.') || body.startsWith('/') || body.startsWith('!')
     let cmd = body.slice(1).split(' ')[0].toLowerCase()
 
     if (isCommand && comandiProibiti.test(cmd)) {
-        // Se è un comando proibito, NON diamo isAdmin e avvisiamo
         m.isAdmin = false 
         return m.reply("🚫 *Azione Fallita*\nI Moderatori non possono promuovere o declassare altri utenti.")
     } else {
-        // Se è un comando sicuro (kick, link, ecc.), diamo i permessi
         m.isAdmin = true 
     }
 }
 
-handler.help = ['addmod', 'delmod', 'listamod']
+handler.help = ['addmod', 'delmod', 'delallmod', 'listamod']
 handler.tags = ['owner', 'group']
-handler.command = /^(addmod|delmod|listamod)$/i
+handler.command = /^(addmod|delmod|delallmod|listamod)$/i
 handler.group = true
 
 export default handler
