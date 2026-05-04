@@ -1,3 +1,4 @@
+// Plug-in creato da elixir
 import { execSync } from 'child_process'
 
 let handler = async (m, { conn, text }) => {
@@ -22,20 +23,17 @@ let handler = async (m, { conn, text }) => {
     let fileDetails = parseGitFileDetails(updateOutput)
 
     let reportFiles = fileDetails.map((f, i) => {
-      return `  node_format_as_bold_text_tag_openFILE #${i + 1}node_format_as_bold_text_tag_close 
-  ↳ 📄 _${f.name}_
-  ↳ 📈 [ +${f.ins} | -${f.del} ]`
+      return `*FILE NUMERO ${i + 1}* (${f.name})\n➕ Aggiunte: ${f.ins} | ➖ Rimosse: ${f.del}`
     }).join('\n\n')
 
     let message = `
-✨ *𝚂𝚈𝚂𝚃𝙴𝙼 𝚄𝙿𝙳𝙰𝚃𝙴* ✨
-━━━━━━━━━━━━━━━━━━━━
+🚀 *PLUGIN AGGIORNATO*: Update System
 
-📦 *DETTAGLI MODIFICHE:*
+━━━━━━━━━━━━━━━━━━━━
 ${reportFiles}
-
 ━━━━━━━━━━━━━━━━━━━━
-✅ *𝙴𝙻𝙸𝚇𝙸𝚁 𝙱𝙾𝚃 è ora all'ultima versione!*`.trim()
+
+✅ *ᴇʟɪxɪʀ-ʙᴏᴛ è aggiornato con successo!*`.trim()
 
     await conn.reply(m.chat, message, m)
     await m.react('🍥')
@@ -51,12 +49,14 @@ function parseGitFileDetails(output) {
   const lines = output.split('\n')
   const files = []
   
+  // Git pull --stat genera righe tipo:  path/to/file.js | 10 +--
   const fileLineRegex = /^\s+(.+)\s+\|\s+(\d+)\s+(.+)$/
 
   for (let line of lines) {
     let match = line.match(fileLineRegex)
     if (match) {
       let name = match[1].trim()
+      let totalChanges = match[2]
       let plusMinus = match[3]
       
       let ins = (plusMinus.match(/\+/g) || []).length
