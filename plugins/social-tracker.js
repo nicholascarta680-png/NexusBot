@@ -27,7 +27,7 @@ let handler = async (m, { conn, text, command }) => {
     if (!text) return m.reply('❌ Inserisci il link dell\'edit!')
     const groups = Object.keys(conn.chats).filter(id => id.endsWith('@g.us'))
     
-    let msg = `✨ *𝙽𝙴𝚆 𝙰𝙽𝙸𝙼𝙴 𝙴𝙳𝙸𝚃* ✨\n━━━━━━━━━━━━━━━━━━━━\n\n🎬 *Nuovo contenuto disponibile!*\nGuarda l'ultimo edit qui:\n🔗 ${text.trim()}\n\n━━━━━━━━━━━━━━━━━━━━\n🔥 _Supporta con un like!_`
+    let msg = `✨ *𝙽𝙴𝚆 𝙴𝙳𝙸𝚃* ✨\n━━━━━━━━━━━━━━━━━━━━\n\n🎬 *Nuovo contenuto disponibile!*\nGuarda l'ultimo edit qui:\n🔗 ${text.trim()}\n\n━━━━━━━━━━━━━━━━━━━━\n🔥 _Supporta con un like!_`
 
     for (let id of groups) {
       try {
