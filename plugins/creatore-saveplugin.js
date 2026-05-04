@@ -1,55 +1,63 @@
+// Plug-in creato da elixir
 import fs from 'fs'
-import { join } from 'path'
+import path from 'path'
 
-let handler = async (m, { conn, text, args, command, usedPrefix }) => {
+let handler = async (m, { conn, text, command, usedPrefix }) => {
     const cmd = command.toLowerCase()
     
-    // Lista dinamica dei plugin caricati in memoria (senza estensione .js)
-    const ar = Object.keys(global.plugins || plugins || {})
-    const ar1 = ar.map(v => v.replace('.js', ''))
+    // Otteniamo il percorso assoluto della cartella plugins
+    const pluginsDir = path.join(process.cwd(), 'plugins')
+    
+    // Lista dinamica dei plugin caricati (rimuovendo il percorso per il confronto)
+    const ar = Object.keys(global.plugins || {})
+    const ar1 = ar.map(v => path.basename(v, '.js'))
 
     if (cmd === 'saveplugin' || cmd === 'sv') {
-        if (!text || !text.trim()) {
-            return conn.reply(m.chat, `*Uhm.. che nome do al plugin?*\n*Esempio:* ${usedPrefix + command} menu`, m)
-        }
-        if (!m.quoted || !m.quoted.text) {
-            return conn.reply(m.chat, `*Rispondi al messaggio che contiene il codice del plugin!*`, m)
-        }
+        if (!m.quoted || !m.quoted.text) return conn.reply(m.chat, `*⚠️ Rispondi al messaggio che contiene il codice del plugin!*`, m)
+        if (!text) return conn.reply(m.chat, `*⚠️ Inserisci il nome del file!*\n*Esempio:* ${usedPrefix + command} prova`, m)
 
-        let filename = text.trim().replace('.js', '')
-        let path = `./plugins/${filename}.js`
+        let filename = text.trim().replace('.js', '') + '.js'
+        let filePath = path.join(pluginsDir, filename)
 
         try {
-            await fs.writeFileSync(path, m.quoted.text)
-            return conn.reply(m.chat, `✅ *Plugin salvato con successo!*\n\n*Percorso:* plugins/${filename}.js\n*Usa:* .reload per ricaricare`, m)
+            // Salvataggio effettivo su disco
+            fs.writeFileSync(filePath, m.quoted.text, 'utf8')
+            
+            // Messaggio di conferma
+            return conn.reply(m.chat, `✅ *Plugin salvato!*\n📂 *File:* plugins/${filename}\n\n> Usa .reload per rendere effettive le modifiche.`, m)
         } catch (e) {
-            return conn.reply(m.chat, `❌ *Errore durante il salvataggio:*\n${e.message}`, m)
+            return conn.reply(m.chat, `❌ *Errore:* ${e.message}`, m)
         }
     }
 
     if (cmd === 'deleteplugin' || cmd === 'dp') {
-        if (!text || !text.trim()) {
-            return conn.reply(m.chat, `*🍬 Inserisci il nome del plugin da eliminare*\n\n*—◉ Esempio:* ${usedPrefix + command} menu\n\n*—◉ Lista dei plugin esistenti:*\n*◉* ${ar1.map(v => ' ' + v).join('\n*◉*')}`, m)
-        }
+        if (!text) return conn.reply(m.chat, `*⚠️ Nome del plugin?*\nEsempio: ${usedPrefix + command} prova`, m)
 
         let target = text.trim().replace('.js', '')
-
-        // Verifica se il plugin esiste in memoria
-        if (!ar1.includes(target)) {
-            return conn.reply(m.chat, `*🍭 Nessun plugin trovato con il nome "${target}"*\n\n*—◉ Lista dei plugin esistenti:*\n*◉* ${ar1.map(v => ' ' + v).join('\n*◉*')}`, m)
-        }
-
-        let path = `./plugins/${target}.js`
+        let filename = target + '.js'
+        let filePath = path.join(pluginsDir, filename)
 
         try {
-            if (fs.existsSync(path)) {
-                fs.unlinkSync(path)
-                return conn.reply(m.chat, `🗑️ *Plugin "${target}.js" eliminato con successo dal sistema.*`, m)
+            if (fs.existsSync(filePath)) {
+                // Elimina il file fisicamente
+                fs.unlinkSync(filePath)
+                
+                // Rimuove il plugin dalla memoria del bot (se presente)
+                if (global.plugins[filename]) delete global.plugins[filename]
+                
+                return conn.reply(m.chat, `🗑️ *Plugin "${filename}" eliminato fisicamente e dalla memoria.*`, m)
             } else {
-                return conn.reply(m.chat, `⚠️ *Il file esiste in memoria ma non è stato trovato nella cartella plugins.*`, m)
+                // Se non esiste il file, cerchiamo se è caricato con un percorso diverso
+                let checkMem = ar.find(v => v.endsWith(filename))
+                if (checkMem) {
+                    fs.unlinkSync(checkMem)
+                    delete global.plugins[checkMem]
+                    return conn.reply(m.chat, `🗑️ *Rimosso plugin trovato in memoria (${filename}).*`, m)
+                }
+                return conn.reply(m.chat, `❌ *Il file "${filename}" non esiste nella cartella plugins.*`, m)
             }
         } catch (e) {
-            return conn.reply(m.chat, `❌ *Errore durante l'eliminazione:*\n${e.message}`, m)
+            return conn.reply(m.chat, `❌ *Errore:* ${e.message}`, m)
         }
     }
 }
