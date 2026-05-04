@@ -1,50 +1,59 @@
 import { performance } from "perf_hooks";
 
-// Funzione per selezionare un elemento casuale da un array
-function pickRandom(array) {
-    return array[Math.floor(Math.random() * array.length)];
-}
-
 let handler = async (m, { conn, text }) => {
     let destinatario;
 
-    // Se è una risposta a un messaggio
     if (m.quoted && m.quoted.sender) {
         destinatario = m.quoted.sender;
-    }
-    // Se ci sono utenti menzionati
-    else if (m.mentionedJid && m.mentionedJid.length > 0) {
+    } else if (m.mentionedJid && m.mentionedJid.length > 0) {
         destinatario = m.mentionedJid[0];
-    }
-    // Se non c'è nulla
-    else {
-        return m.reply("Tagga qualcuno o rispondi a un messaggio per iniziare l'imbiancamento.");
+    } else {
+        return m.reply("`[!]` Tagga qualcuno o rispondi a un messaggio per iniziare.");
     }
 
     let nomeDestinatario = `@${destinatario.split('@')[0]}`;
-
-    // Messaggi personalizzati
+    
+    // --- SEQUENZA RAPIDA ---
     let sequenza = [
-        `*inizio a segarmi su*🥵*${nomeDestinatario}*...`,
-        " *mi sta pulsando preparati*🍆...",
-        "*preparati alla sborrata*💦💦"
+        `*───「 🔞 LOADING 」───*\n\n*Inizio a segarmi su:* ${nomeDestinatario} 🥵\n*Stato:* \`Iniezione...\`\n\n*────────────────*`,
+        `*───「 🍆 STATUS 」───*\n\n*Mi sta pulsando forte...* 🍌\n*Caricamento:* \`[████████▒▒] 85%\`\n\n*────────────────*`,
+        `*───「 💦 WARNING 」───*\n\n*PREPARATI ALLA SBORRATA!* 💦💦\n*Stato:* \`Pressione Massima\`\n\n*────────────────*`
     ];
 
-    // Invia i messaggi uno alla volta
+    // Invio immediato di tutta la sequenza
     for (let msg of sequenza) {
-        await m.reply(msg, null, { mentions: [destinatario] });
+        conn.sendMessage(m.chat, { text: msg, mentions: [destinatario] });
     }
 
-    // Calcolo del tempo
-    let startTime = performance.now();
-    // Finto tempo di elaborazione (puoi sostituirlo con operazioni reali)
-    let endTime = performance.now();
-    let elapsedTime = (endTime - startTime).toFixed(2);
+    // Calcolo tempo (simulato per lo stile)
+    let elapsedTime = (Math.random() * 400 + 100).toFixed(2);
 
-    let resultMessage = `✨ *${nomeDestinatario}*  *è stato/a imbiancato da blood*,🤤 *mi hai fatto venire dopo*😏 *${elapsedTime}*ms*!`;
-    conn.reply(m.chat, resultMessage, m, { mentions: [destinatario] });
+    // --- RISULTATO FINALE ELEGANTE ---
+    let resultMessage = `┏─━─━─━  〔 🥛 〕  ━─━─━─┓
+     *MISSIONE COMPIUTA*
+┗─━─━─━─━─━─━─━─━─┛
+
+◈ *Target:* ${nomeDestinatario}
+◈ *Stato:* \`Completamente Imbiancato/a\` 🤤
+◈ *Tempo:* \`${elapsedTime}ms\`
+
+> ✨ *Blood ha goduto tantissimo, mi hai fatto venire subito!* 😏`.trim();
+
+    conn.sendMessage(m.chat, { 
+        text: resultMessage, 
+        mentions: [destinatario],
+        contextInfo: {
+            externalAdReply: {
+                title: 'ʙʟᴏᴏᴅ ᴇxᴘʟᴏɪᴛ: sᴘᴇʀᴍ-ʟᴏᴀᴅ',
+                body: 'Target neutralizzato con successo',
+                thumbnailUrl: 'https://qu.ax', 
+                mediaType: 1,
+                showAdAttribution: true,
+                renderLargerThumbnail: true
+            }
+        }
+    }, { quoted: m });
 };
-
 
 handler.command = /^(sborralo|sborrala)$/i;
 handler.help = ['sborralo', 'sborrala'];  
