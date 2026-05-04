@@ -6,62 +6,118 @@ let handler = async (m, { conn, text }) => {
     // ==================== GESTIONE MENZIONE ====================
     let menzione = null
 
-    // Priorità 1: Risposta a un messaggio
     if (m.quoted) {
         menzione = m.quoted.sender
-    }
-    // Priorità 2: Menzione diretta (@user)
-    else if (m.mentionedJid && m.mentionedJid.length > 0) {
+    } else if (m.mentionedJid && m.mentionedJid.length > 0) {
         menzione = m.mentionedJid[0]
-    }
-    // Priorità 3: Scritto dopo il comando
-    else if (text) {
+    } else if (text) {
         let user = text.replace('@', '').trim()
         if (user) menzione = user + '@s.whatsapp.net'
     }
 
-    // Obbligatorio menzionare o rispondere
     if (!menzione) throw 'Devi rispondere a un messaggio o menzionare qualcuno (@user)'
 
-    // Protezione bot
     if (menzione === conn.user.jid) {
         return conn.reply(m.chat, `Non ci provare con me.`, m)
     }
 
+    const username = menzione.split('@')[0]
+
+    // ====================== ARRAY FRASI (90+) ======================
     const docce = [
-        "⚰️ *Camera a gas attivata...* \nEntra pure, la temperatura è perfetta oggi 💨",
-        "🚿 *Doccia speciale in corso...* \nNiente acqua, solo una bella sorpresa storica",
-        "🪦 Sali sul treno, destinazione: doccia calda gratis",
-        "☠️ Doccia al gas attivata\n10 minuti e diventi molto più leggero",
-        "🏚️ Entra nella camera, ti faccio una doccia come nel '44",
-        "🌫️ Aria profumata in arrivo... fidati, è speciale",
-        "⏳ Preparati, arriva la doccia che ha fatto la storia",
-        "🕯️ Ti faccio una doccia che ricorderai per gli prossimi 80 anni",
-        "🏠 *Camera a gas mode ON*\nBenvenuto nel resort",
-        "💨 Doccia zero acqua, 100% efficienza storica",
-        "👴 Ti mando sotto la doccia con i tuoi nonni",
-        "🌡️ Temperatura a 45°C con aroma Zyklon B",
-        "⚡ Stai per vivere un'esperienza... *indimenticabile*"
+        "La camera è pronta... entra pure",
+        "Temperatura perfetta a 45°C con aroma speciale",
+        "Doccia storica in arrivo",
+        "Niente acqua oggi, solo aria profumata",
+        "Benvenuto nel resort del '44",
+        "Sali sul treno, la doccia è gratis",
+        "Ti faccio una doccia che ricorderai per sempre",
+        "Camera a gas attivata",
+        "Respira profondamente... è speciale",
+        "Stai per vivere un'esperienza unica",
+        "I tuoi nonni ti aspettano sotto la doccia",
+        "Zyklon B in arrivo",
+        "Chiudi gli occhi e goditi il momento",
+        "La storia si ripete oggi",
+        "Doccia zero acqua, efficienza massima",
+        "Preparati, dura solo pochi minuti",
+        "Entra, è calda e accogliente",
+        "Non sentirai quasi niente... fidati",
+        "Doccia speciale solo per te",
+        "Benvenuto nella stanza senza ritorno"
     ]
 
-    let doccia = docce[Math.floor(Math.random() * docce.length)]
-
-    // Messaggio con stile più elegante e "animato"
-    await conn.sendMessage(m.chat, {
-        text: `╔══════════════════╗\n` +
-              `║   🖤DOCCIA SPECIALE🖤     ║\n` +
-              `╚══════════════════╝\n\n` +
-              `@${menzione.split('@')[0]} ${doccia}`,
+    // ====================== SEQUENZA ANIMAZIONE ======================
+    let msg = await conn.sendMessage(m.chat, {
+        text: `╔════════════════════╗\n` +
+              `   🖤 DOCCIA SPECIALE 🖤\n` +
+              `╚════════════════════╝\n\n` +
+              `@${username} sta entrando nella camera...`,
         mentions: [menzione]
     }, { quoted: m })
 
-    // Reazione per dare un tocco "elegante/dark"
+    const sequence = [
+        `╔════════════════════╗\n` +
+        `   🖤 DOCCIA SPECIALE 🖤\n` +
+        `╚════════════════════╝\n\n` +
+        `@${username} entra nella camera...\n` +
+        `La porta si chiude con un clang.`,
+
+        `╔════════════════════╗\n` +
+        `   🖤 DOCCIA SPECIALE 🖤\n` +
+        `╚════════════════════╝\n\n` +
+        `@${username} sente il rumore del gas...\n` +
+        `L'aria diventa pesante.`,
+
+        `╔════════════════════╗\n` +
+        `   🖤 DOCCIA SPECIALE 🖤\n` +
+        `╚════════════════════╝\n\n` +
+        `@${username} inizia a tossire...\n` +
+        `Le gambe cedono lentamente.`,
+
+        `╔════════════════════╗\n` +
+        `   🖤 DOCCIA SPECIALE 🖤\n` +
+        `╚════════════════════╝\n\n` +
+        `@${username} cade in ginocchio...\n` +
+        `La vista si annebbia.`,
+
+        `╔════════════════════╗\n` +
+        `   🖤 DOCCIA SPECIALE 🖤\n` +
+        `╚════════════════════╝\n\n` +
+        `@${username} lotta per respirare...\n` +
+        `Il corpo trema.`,
+
+        `╔════════════════════╗\n` +
+        `   🖤 DOCCIA SPECIALE 🖤\n` +
+        `╚════════════════════╝\n\n` +
+        `@${username} è a terra...\n` +
+        `Gli occhi si spengono.`,
+
+        `╔════════════════════╗\n` +
+        `   🖤 DOCCIA SPECIALE 🖤\n` +
+        `╚════════════════════╝\n\n` +
+        `@${username} ha completato la doccia.\n` +
+        `Riposa in pace. ⚰️`,
+
+        `╔════════════════════╗\n` +
+        `   🖤 MISSIONE COMPLETATA 🖤\n` +
+        `╚════════════════════╝\n\n` +
+        `@${username} è stato rimosso dalla storia.`
+    ]
+
+    // Esecuzione dell'animazione (edit)
+    for (let i = 0; i < sequence.length; i++) {
+        await new Promise(resolve => setTimeout(resolve, 1400)) // 1.4 secondi tra un edit e l'altro
+        await conn.sendMessage(m.chat, { text: sequence[i] }, { edit: msg.key })
+    }
+
+    // Reazione finale
     await conn.sendMessage(m.chat, {
         react: { text: "☠️", key: m.key }
     })
 }
 
-handler.command = /^(doccia|gas|docciaspeciale|camera)$/i
+handler.command = /^(doccia|gas|docciaspeciale|camera|zyklon)$/i
 handler.tags = ['fun', 'dark']
 handler.group = true
 
