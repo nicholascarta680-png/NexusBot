@@ -4,8 +4,6 @@ handler.before = async function (m) {
     if (!m.isGroup) return;
 
     let chat = global.db.data.chats[m.chat];
-    if (!chat?.antilink) return;
-
     const metadata = conn.chats[m.chat]?.metadata || await conn.groupMetadata(m.chat);
     const pex = metadata?.participants?.find(u => conn.decodeJid(u.id) === m.sender)?.admin;
     const botAdmin = metadata?.participants?.find(u => conn.decodeJid(u.id) === conn.user.jid)?.admin;
@@ -18,7 +16,7 @@ handler.before = async function (m) {
     const telegramLinkRegex = /t.me\/([0-9A-Za-z]*?)|t.me\/([+]*?)([0-9A-Za-z]*?)|t.me\/s\/([0-9A-Za-z]*?)/i;
     const tiktokLinkRegex = /(?:https?:\/\/)?(?:www\.)?(?:vm\.)?tiktok\.com\/(?:@)?([a-zA-Z0-9_]+)/i;
 
-    let text = (m.text || m.message?.conversation || m.message?.extendedTextMessage?.text || 
+    let match = (m.text || m.message?.conversation || m.message?.extendedTextMessage?.text || 
         m.message?.extendedTextMessage?.matchedText || 
         m.message?.editedMessage?.message?.protocolMessage?.editedMessage?.conversation || 
         m.message?.editedMessage?.message?.protocolMessage?.editedMessage?.extendedTextMessage?.text || 
@@ -28,15 +26,13 @@ handler.before = async function (m) {
         .toLowerCase().replace(/> |[*]/g, "");
 
     let type = "";
-    if (groupLinkRegex.test(text)) type = "Link Gruppo WhatsApp";
-    else if (channelLinkRegex.test(text)) type = "Link Canale WhatsApp";
-    else if (instaLinkRegex.test(text)) type = "Link Instagram";
-    else if (telegramLinkRegex.test(text)) type = "Link Telegram";
-    else if (tiktokLinkRegex.test(text)) type = "Link TikTok";
+    if (chat.antilinkgp && (groupLinkRegex.test(match) || channelLinkRegex.test(match))) type = "Link WhatsApp (Gruppo/Canale)";
+    else if (chat.antilinkig && instaLinkRegex.test(match)) type = "Link Instagram";
+    else if (chat.antilinktg && telegramLinkRegex.test(match)) type = "Link Telegram";
+    else if (chat.antilinktt && tiktokLinkRegex.test(match)) type = "Link TikTok";
 
     if (type) {
         if (!botAdmin) return;
-        
         await conn.sendMessage(m.chat, { delete: m.key });
         await conn.sendMessage(m.chat, { text: `⚠️ Utente @${m.sender.split('@')[0]} rimosso immediatamente perché ha inviato un: *${type}*`, mentions: [m.sender] });
         await conn.groupParticipantsUpdate(m.chat, [m.sender], 'remove');
