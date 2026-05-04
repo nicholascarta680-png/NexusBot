@@ -1,71 +1,56 @@
 import { execSync } from 'child_process'
 
 let handler = async (m, { conn, text }) => {
-  // Verifica proprietario (opzionale, basato sulla tua logica)
-  try {
-    await m.react('🛰️')
-    
-    // --- STEP 1: CONNESSIONE ---
-    await conn.sendMessage(m.chat, { text: '`[ SYSTEM ]` Connessione al repository GitHub...' }, { quoted: m })
+  if (conn.user.jid !== conn.user.jid) return 
 
+  try {
+    await m.react('⏳')
+    
     execSync('git fetch')
     let status = execSync('git status -uno', { encoding: 'utf-8' })
 
     if (status.includes('Your branch is up to date') || status.includes('nothing to commit')) {
+      await conn.reply(m.chat, '✅ *Il bot è già aggiornato.*', m)
       await m.react('✅')
-      return conn.reply(m.chat, `*───「 SYNC STATUS 」───*\n\n✅ *Il sistema è già all'ultima versione.*\n\n*────────────────*`, m)
+      return
     }
 
-    // --- STEP 2: DOWNLOAD ---
-    await conn.sendMessage(m.chat, { text: '`[ SYSTEM ]` Aggiornamenti rilevati. Download in corso...' }, { quoted: m })
-    
+    // Usiamo --stat per avere i dettagli dei singoli file
     let updateOutput = execSync('git reset --hard && git pull --stat' + (m.fromMe && text ? ' ' + text : ''), { encoding: 'utf-8' })
+    
+    // Analizziamo l'output per estrarre i file
     let fileDetails = parseGitFileDetails(updateOutput)
 
-    // Formattazione elegante dei file
     let reportFiles = fileDetails.map((f, i) => {
-      return `📂 *FILE [${i + 1}]*: \`${f.name}\`\n  └ 🟢 +${f.ins}  |  🔴 -${f.del}`
-    }).join('\n')
+      return `  node_format_as_bold_text_tag_openFILE #${i + 1}node_format_as_bold_text_tag_close 
+  ↳ 📄 _${f.name}_
+  ↳ 📈 [ +${f.ins} | -${f.del} ]`
+    }).join('\n\n')
 
-    // --- REPORT FINALE ---
-    let message = `┏─━─━─━  〔 🛡️ 〕  ━─━─━─┓
-     *ELIXIR CORE UPDATE*
-┗─━─━─━─━─━─━─━─━─┛
+    let message = `
+✨ *𝚂𝚈𝚂𝚃𝙴𝙼 𝚄𝙿𝙳𝙰𝚃𝙴* ✨
+━━━━━━━━━━━━━━━━━━━━
 
-◈ *Status:* \`Sincronizzato\`
-◈ *Repository:* \`Origin/Main\`
-
-*DETTAGLI MODIFICHE:*
+📦 *DETTAGLI MODIFICHE:*
 ${reportFiles}
 
-*────────────────*
-✅ *SISTEMA AGGIORNATO CON SUCCESSO*`.trim()
+━━━━━━━━━━━━━━━━━━━━
+✅ *𝙴𝙻𝙸𝚇𝙸𝚁 𝙱𝙾𝚃 è ora all'ultima versione!*`.trim()
 
-    await conn.sendMessage(m.chat, { 
-        text: message,
-        contextInfo: {
-            externalAdReply: {
-                title: 'ᴇʟɪxɪʀ sᴇᴄᴜʀɪᴛʏ: sʏsᴛᴇm sʏɴᴄ',
-                body: 'Il bot è ora all\'ultima versione disponibile',
-                thumbnailUrl: 'https://qu.ax', 
-                mediaType: 1,
-                showAdAttribution: true,
-                renderLargerThumbnail: false
-            }
-        }
-    }, { quoted: m })
-    
+    await conn.reply(m.chat, message, m)
     await m.react('🍥')
 
   } catch (err) {
+    await conn.reply(m.chat, `❌ *ERRORE*\n\n> ${err.message}`, m)
     await m.react('❌')
-    await conn.reply(m.chat, `*───「 UPDATE ERROR 」───*\n\n\`\`\`${err.message}\`\`\`\n\n*────────────────*`, m)
   }
 }
 
+// Funzione per estrarre i dettagli di ogni singolo file modificato
 function parseGitFileDetails(output) {
   const lines = output.split('\n')
   const files = []
+  
   const fileLineRegex = /^\s+(.+)\s+\|\s+(\d+)\s+(.+)$/
 
   for (let line of lines) {
@@ -73,8 +58,10 @@ function parseGitFileDetails(output) {
     if (match) {
       let name = match[1].trim()
       let plusMinus = match[3]
+      
       let ins = (plusMinus.match(/\+/g) || []).length
       let del = (plusMinus.match(/-/g) || []).length
+
       files.push({ name, ins, del })
     }
   }
@@ -84,6 +71,5 @@ function parseGitFileDetails(output) {
 handler.help = ['aggiorna']
 handler.tags = ['creatore']
 handler.command = ['aggiorna', 'update', 'aggiornabot']
-handler.rowner = true
 
 export default handler
