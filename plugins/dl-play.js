@@ -1,4 +1,3 @@
-// Plug-in fixed by elixir
 import yts from 'yt-search';
 import fg from 'api-dylux';
 import fetch from 'node-fetch';
@@ -10,7 +9,6 @@ import os from 'os';
 let handler = async (m, { conn, text, usedPrefix, command }) => {
   if (!text) return m.reply(`🔮 *ᴇʟɪxɪʀ ʙᴏᴛ*\n\n💡 _Scrivi:_ ${usedPrefix + command} nome canzone`);
 
-  // Percorsi file temporanei definiti fuori per essere accessibili al finally
   const tmpDir = os.tmpdir();
   const inputPath = path.join(tmpDir, `input_${Date.now()}`);
   const outputPath = path.join(tmpDir, `output_${Date.now()}.${command === 'playaud' ? 'mp3' : 'mp4'}`);
@@ -22,7 +20,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
 
     const url = vid.url;
 
-    // Menu principale con bottoni
+    // Menu principale
     if (command === 'play') {
         let infoMsg = `┏━━━━━━━━━━━━━━━━━━━┓\n`;
         infoMsg += `      🎧 ᴇʟɪxɪʀ ʙᴏᴛ ᴘʟᴀʏᴇʀ 🎧\n`;
@@ -43,17 +41,17 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
         }, { quoted: m });
     }
 
-    // Reazione di caricamento
     await conn.sendMessage(m.chat, { react: { text: "🔮", key: m.key } });
 
     let downloadUrl = null;
     const isAudio = command === 'playaud';
 
-    // Tentativo di download tramite API
+    // Tentativo di download tramite API Dylux
     try {
         let res = isAudio ? await fg.yta(url) : await fg.ytv(url);
         if (res && res.dl_url) downloadUrl = res.dl_url;
-    } catch {
+    } catch (e) {
+        // Fallback su API esterna (Corretto URL con /)
         let api = isAudio ? 'ytmp3' : 'ytmp4';
         let res = await fetch(`https://vreden.my.id{api}?url=${url}`);
         let json = await res.json();
@@ -62,13 +60,12 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
 
     if (!downloadUrl) throw new Error('Download URL non trovato');
 
-    // Download del file bufferizzato
     const response = await fetch(downloadUrl);
     const buffer = await response.buffer();
     fs.writeFileSync(inputPath, buffer);
 
     if (isAudio) {
-        // Conversione Audio con FFmpeg (virgolette aggiunte per sicurezza nomi file)
+        // Conversione Audio con FFmpeg
         await new Promise((resolve, reject) => {
             exec(`ffmpeg -i "${inputPath}" -vn -ar 44100 -ac 2 -b:a 128k "${outputPath}"`, (err) => {
                 if (err) reject(err);
@@ -87,7 +84,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
         await conn.sendMessage(m.chat, {
             video: fs.readFileSync(inputPath),
             mimetype: 'video/mp4',
-            caption: `✅ *ꜱᴄᴀʀɪᴄᴀᴛᴏ ᴅᴀ ᴇʟɪxɪʀ ʙᴏᴛ*`,
+            caption: `✅ *ꜱᴄᴀʀɪᴄᴀᴛᴏ ᴅᴀ ᴇʟɪxɪʀ ʙᴏᴛ*\n📌 *Titolo:* ${vid.title}`,
         }, { quoted: m });
     }
 
@@ -95,12 +92,12 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
 
   } catch (e) {
     console.error(e);
-    m.reply('🚀 *ᴇʟɪxɪʀ ʙᴏᴛ ᴇʀʀᴏʀ:* File non disponibile o server offline.');
+    m.reply('🚀 *ᴇʟɪxɪʀ ʙᴏᴛ ᴇʀʀᴏʀ:* Servizio momentaneamente non disponibile.');
     await conn.sendMessage(m.chat, { react: { text: "❌", key: m.key } });
   } finally {
-    // Pulizia file temporanei (Fondamentale!)
-    if (fs.existsSync(inputPath)) fs.unlinkSync(inputPath);
-    if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
+    // Pulizia file sicura
+    if (fs.existsSync(inputPath)) try { fs.unlinkSync(inputPath) } catch {}
+    if (fs.existsSync(outputPath)) try { fs.unlinkSync(outputPath) } catch {}
   }
 };
 
