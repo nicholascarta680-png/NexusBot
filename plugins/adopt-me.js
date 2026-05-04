@@ -280,7 +280,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
   }
 
   // ─── GIOCA ─────────────────────────────────────────
-  if (/^(gioca|play)$/.test(command)) {
+  if (/^(gioca)$/.test(command)) {
     if (!pet) return m.reply('Nessun animale.')
 
     const dati  = TUTTI[pet.tipo]
@@ -377,7 +377,7 @@ function controllaLivello(pet) {
 }
 
 // ─── REGEX COMANDI ──────────────────────────────────
-handler.command = /^(adopt|esotico|animale|pet|miopet|nutri|mangia|gioca|play|cura|heal|evolvi|abbandona|rilascia|classificaanimali|topanimali)$/i
+handler.command = /^(adopt|esotico|animale|pet|miopet|nutri|mangia|gioca|cura|heal|evolvi|abbandona|rilascia|classificaanimali|topanimali)$/i
 
 handler.group = true
 
