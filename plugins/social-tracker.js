@@ -4,8 +4,8 @@ import axios from 'axios'
 let handler = async (m, { conn, text, command }) => {
   if (!global.db.data.socialTracker) global.db.data.socialTracker = { targets: [], lastCheck: null }
 
-  // 1. COMANDO STATUS (.newsstatus) - PER VEDERE SE FUNZIONA
-  if (command === 'newsstatus') {
+  // 1. COMANDO STATUS (.newssstatus) - PER VEDERE SE FUNZIONA
+  if (command === 'newssstatus') {
     const targets = global.db.data.socialTracker.targets
     const last = global.db.data.socialTracker.lastCheck 
       ? new Date(global.db.data.socialTracker.lastCheck).toLocaleString('it-IT') 
@@ -22,8 +22,8 @@ let handler = async (m, { conn, text, command }) => {
     return m.reply(statusMsg.trim())
   }
 
-  // 2. COMANDO MANUALE (.news link)
-  if (command === 'news') {
+  // 2. COMANDO MANUALE (.newss link)
+  if (command === 'newss') {
     if (!text) return m.reply('❌ Inserisci il link dell\'edit!')
     const groups = Object.keys(conn.chats).filter(id => id.endsWith('@g.us'))
     
@@ -35,7 +35,7 @@ let handler = async (m, { conn, text, command }) => {
         await conn.sendMessage(id, { text: msg, mentions: participants })
       } catch (e) {}
     }
-    return m.reply(`✅ News inviata a tutti i gruppi comuni.`)
+    return m.reply(`✅ newss inviata a tutti i gruppi comuni.`)
   }
 
   // 3. AGGIUNGI TRACKER (.addtracker tiktok|username)
@@ -86,9 +86,9 @@ setInterval(async () => {
   }
 }, 60000) // 60 secondi
 
-handler.help = ['news', 'newsstatus', 'addtracker']
+handler.help = ['newss', 'newstatus', 'addtracker']
 handler.tags = ['social', 'admin']
-handler.command = /^(news|newsstatus|newedit|addtracker)$/i
+handler.command = /^(newss|newstatus|newedit|addtracker)$/i
 handler.rowner = true
 
 export default handler
