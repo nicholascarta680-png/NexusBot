@@ -8,32 +8,26 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
     const pluginsDir = path.join(process.cwd(), 'plugins')
     
     if (cmd === 'saveplugin' || cmd === 'sv') {
-        if (!m.quoted || !m.quoted.text) return m.reply(`*⚠️ Rispondi al messaggio con il codice!*`)
-        if (!text) return m.reply(`*⚠️ Nome del file? Es: ${usedPrefix + command} prova*`)
+        if (!m.quoted || !m.quoted.text) return m.reply('`[!] Rispondi al codice da salvare`')
+        if (!text) return m.reply(`\`[!] Esempio: ${usedPrefix + command} nome\``)
 
         let filename = text.trim().replace('.js', '') + '.js'
         let filePath = path.join(pluginsDir, filename)
 
         try {
-            // 1. Scrittura fisica
             fs.writeFileSync(filePath, m.quoted.text, 'utf8')
-            
-            // 2. Auto-Reload (Caricamento immediato)
             const fileUrl = pathToFileURL(filePath).href
-            try {
-                const module = await import(`${fileUrl}?update=${Date.now()}`)
-                global.plugins[filename] = module.default || module
-                return m.reply(`✅ *Plugin salvato e attivato!*\n📂 *Percorso:* plugins/${filename}\n\n> Il comando è già pronto all'uso.`)
-            } catch (err) {
-                return m.reply(`✅ *Plugin salvato su disco*, ma devi usare .aggiorna per attivarlo.\n\n*Errore caricamento:* ${err.message}`)
-            }
+            const module = await import(`${fileUrl}?update=${Date.now()}`)
+            global.plugins[filename] = module.default || module
+            
+            return m.reply(`*───「 INSTALLED 」───*\n\n*📂 FILE:* \`${filename}\`\n*STATUS:* \`Attivo / Online\`\n\n*────────────────*`)
         } catch (e) {
-            return m.reply(`❌ *Errore scrittura:* ${e.message}`)
+            return m.reply(`\`[ERROR]: ${e.message}\``)
         }
     }
 
     if (cmd === 'deleteplugin' || cmd === 'dp') {
-        if (!text) return m.reply(`*⚠️ Nome del plugin da eliminare?*`)
+        if (!text) return m.reply('`[!] Indica il plugin da rimuovere`')
 
         let target = text.trim().replace('.js', '')
         let filename = target + '.js'
@@ -42,17 +36,15 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
         try {
             if (fs.existsSync(filePath)) {
                 fs.unlinkSync(filePath)
-                
-                // Rimozione immediata dalla memoria
                 const key = Object.keys(global.plugins).find(k => k.endsWith(filename))
                 if (key) delete global.plugins[key]
                 
-                return m.reply(`🗑️ *"${filename}" eliminato sia dal disco che dalla memoria.*`)
+                return m.reply(`*───「 DELETED 」───*\n\n*🗑️ FILE:* \`${filename}\`\n*STATUS:* \`Rimosso dal sistema\`\n\n*────────────────*`)
             } else {
-                return m.reply(`❌ Il file "${filename}" non esiste nella cartella plugins.`)
+                return m.reply('`[!] File non trovato nel database`')
             }
         } catch (e) {
-            return m.reply(`❌ *Errore eliminazione:* ${e.message}`)
+            return m.reply(`\`[ERROR]: ${e.message}\``)
         }
     }
 }
