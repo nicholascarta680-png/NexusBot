@@ -8,44 +8,44 @@ let handler = async (m, { conn, text }) => {
     } else if (m.mentionedJid && m.mentionedJid.length > 0) {
         destinatario = m.mentionedJid[0];
     } else {
-        return m.reply("`[!]` Tagga qualcuno o rispondi a un messaggio per iniziare.");
+        return m.reply("`[!]` Tagga qualcuno o rispondi a un messaggio per avviare il protocollo.");
     }
 
     let nomeDestinatario = `@${destinatario.split('@')[0]}`;
     
-    // --- SEQUENZA RAPIDA ---
+    // --- SEQUENZA ELIXIR ---
     let sequenza = [
-        `*───「 🔞 LOADING 」───*\n\n*Inizio a segarmi su:* ${nomeDestinatario} 🥵\n*Stato:* \`Iniezione...\`\n\n*────────────────*`,
-        `*───「 🍆 STATUS 」───*\n\n*Mi sta pulsando forte...* 🍌\n*Caricamento:* \`[████████▒▒] 85%\`\n\n*────────────────*`,
-        `*───「 💦 WARNING 」───*\n\n*PREPARATI ALLA SBORRATA!* 💦💦\n*Stato:* \`Pressione Massima\`\n\n*────────────────*`
+        `*───「 🧪 ELIXIR INJECTION 」───*\n\n*Target:* ${nomeDestinatario} 🥵\n*Protocollo:* \`Sincronizzazione ormonale...\`\n\n*────────────────*`,
+        `*───「 ⚡ OVERLOAD 」───*\n\n*Pressione in aumento...* 🍌\n*Caricamento:* \`[████████▒▒] 80%\`\n\n*────────────────*`,
+        `*───「 💦 RELEASE 」───*\n\n*FASE FINALE: ESPULSIONE!* 💦💦\n*Stato:* \`Critico / Irreversibile\`\n\n*────────────────*`
     ];
 
-    // Invio immediato di tutta la sequenza
+    // Invio con ritardo di 1.5 secondi per effetto suspense
     for (let msg of sequenza) {
-        conn.sendMessage(m.chat, { text: msg, mentions: [destinatario] });
+        await conn.sendMessage(m.chat, { text: msg, mentions: [destinatario] }, { quoted: m });
+        await new Promise(resolve => setTimeout(resolve, 1500)); 
     }
 
-    // Calcolo tempo (simulato per lo stile)
-    let elapsedTime = (Math.random() * 400 + 100).toFixed(2);
+    let elapsedTime = (Math.random() * 300 + 200).toFixed(2);
 
-    // --- RISULTATO FINALE ELEGANTE ---
-    let resultMessage = `┏─━─━─━  〔 🥛 〕  ━─━─━─┓
-     *MISSIONE COMPIUTA*
+    // --- RISULTATO FINALE ELIXIR ---
+    let resultMessage = `┏─━─━─━  〔 🛡️ 〕  ━─━─━─┓
+     *ELIXIR EXECUTION*
 ┗─━─━─━─━─━─━─━─━─┛
 
-◈ *Target:* ${nomeDestinatario}
-◈ *Stato:* \`Completamente Imbiancato/a\` 🤤
+◈ *Vittima:* ${nomeDestinatario}
+◈ *Risultato:* \`Imbiancamento Totale\` 🤤
 ◈ *Tempo:* \`${elapsedTime}ms\`
 
-> ✨ *Blood ha goduto tantissimo, mi hai fatto venire subito!* 😏`.trim();
+> ✨ *Il sistema Elixir ha completato l'operazione. Sei stato/a inondato/a!* 😏`.trim();
 
-    conn.sendMessage(m.chat, { 
+    await conn.sendMessage(m.chat, { 
         text: resultMessage, 
         mentions: [destinatario],
         contextInfo: {
             externalAdReply: {
-                title: 'ʙʟᴏᴏᴅ ᴇxᴘʟᴏɪᴛ: sᴘᴇʀᴍ-ʟᴏᴀᴅ',
-                body: 'Target neutralizzato con successo',
+                title: 'ᴇʟɪxɪʀ sᴇᴄᴜʀɪᴛʏ: sᴘᴇʀᴍ sʏɴᴄ',
+                body: 'Iniezione completata con successo',
                 thumbnailUrl: 'https://qu.ax', 
                 mediaType: 1,
                 showAdAttribution: true,
