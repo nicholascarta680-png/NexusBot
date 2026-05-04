@@ -9,8 +9,13 @@ import jsQR from 'jsqr';
 import fetch from 'node-fetch';
 import { FormData } from 'formdata-node';
 
-const WHATSAPP_GROUP_REGEX = /\bchat\.whatsapp\/([0-9A-Za-z]{20,24})/i;
-const WHATSAPP_CHANNEL_REGEX = /whatsapp\.com\/channel\/([0-9A-Za-z]{20,24})/i;
+// --- REGEX DI SICUREZZA (SOCIAL & CLOUD) ---
+const groupLinkRegex = /(https?:\/\/)?chat\.whatsapp\.com\/([a-zA-Z0-9_-]{22})/i;
+const channelLinkRegex = /(https?:\/\/)?whatsapp\.com\/channel\/([0-9A-Za-z]{20,24})/i;
+const instaLinkRegex = /(?:(?:http|https):\/\/)?(?:www\.)?(?:instagram.com|instagr.am|instagr.com)\/(\w+)/i;
+const telegramLinkRegex = /t.me\/([0-9A-Za-z] *?)|t.me\/([+] *?)([0-9A-Za-z] *?)|t.me\/s\/([0-9A-Za-z] *?)/i;
+const tiktokLinkRegex = /(?:https?:\/\/)?(?:www\.)?(?:vm\.)?tiktok\.com\/(?:@)?([a-zA-Z0-9_]+)/i;
+
 const SHORT_URL_DOMAINS = [
     'bit.ly', 'tinyurl.com', 't.co', 'short.link', 'shorturl.at',
     'is.gd', 'v.gd', 'goo.gl', 'ow.ly', 'buff.ly',
@@ -22,7 +27,7 @@ const SHORT_URL_DOMAINS = [
     'cur.lv', 'gestyy.com', 'shrinkarn.com', 'za.gl', 'clicksfly.com',
     '6url.com', 'shortlink.sh', 'short.tn', 'rotator.ninja',
     'shrtco.de', 'ulvis.net', 'chilp.it', 'clicky.me',
-    'budurl.com', 'po.st', 'shr.lc', 'dub.co'
+    'po.st', 'shr.lc', 'dub.co'
 ];
 
 const SHORT_URL_REGEX = new RegExp(
@@ -31,13 +36,14 @@ const SHORT_URL_REGEX = new RegExp(
 );
 
 // --- LOGICA DI SUPPORTO ---
-function isWhatsAppLink(url) {
-    return WHATSAPP_GROUP_REGEX.test(url) || WHATSAPP_CHANNEL_REGEX.test(url);
-}
-
-async function containsSuspiciousLink(text) {
-    if (!text) return false;
-    return isWhatsAppLink(text) || SHORT_URL_REGEX.test(text);
+function checkSocialLinks(text) {
+    if (groupLinkRegex.test(text)) return 'Link Gruppo WhatsApp';
+    if (channelLinkRegex.test(text)) return 'Canale WhatsApp';
+    if (instaLinkRegex.test(text)) return 'Link Instagram';
+    if (telegramLinkRegex.test(text)) return 'Link Telegram';
+    if (tiktokLinkRegex.test(text)) return 'Link TikTok';
+    if (SHORT_URL_REGEX.test(text)) return 'Circuito URL abbreviato';
+    return null;
 }
 
 // --- GESTIONE VIOLAZIONE ---
@@ -52,7 +58,7 @@ async function handleViolation(conn, m, reason, isBotAdmin) {
 ◈ *Stato:* Violazione Rilevata
 ◈ *Causa:* ${reason}
 
-> _Il protocollo di sicurezza ha rimosso il contenuto non autorizzato per proteggere l'integrità del gruppo._`.trim();
+> _Il protocollo di sicurezza ha rimosso il contenuto non autorizzato._`.trim();
 
     if (isBotAdmin) {
         try { await conn.sendMessage(m.chat, { delete: m.key }); } catch {}
@@ -64,7 +70,7 @@ async function handleViolation(conn, m, reason, isBotAdmin) {
         contextInfo: {
             externalAdReply: {
                 title: 'ᴇʟɪxɪʀ sᴇᴄᴜʀɪᴛʏ sʏsᴛᴇᴍ ᴠ3',
-                body: 'Restrizione Accesso Link Attiva',
+                body: 'Social Link Protection Attiva',
                 thumbnailUrl: 'https://qu.ax',
                 mediaType: 1,
                 renderLargerThumbnail: true,
@@ -85,7 +91,7 @@ export async function before(m, { conn, isAdmin, isBotAdmin, isOwner, isSam }) {
     const chat = global.db.data.chats[m.chat];
     if (!chat?.antiLink) return false;
 
-    // --- LOGICA DI ESTRAZIONE TESTO AVANZATA (QUOTED, EDIT, POLL, VIEWONCE) ---
+    // ESTRAZIONE TESTO AVANZATA (CATTURA OGNI TIPO DI MESSAGGIO)
     let match = (
         m.text || 
         m.message?.conversation || 
@@ -102,30 +108,19 @@ export async function before(m, { conn, isAdmin, isBotAdmin, isOwner, isSam }) {
         ''
     ).toLowerCase().replace(/> |[*]/g, "");
 
-    let linkFound = false;
-    let reason = '';
+    const violationReason = checkSocialLinks(match);
 
-    // Verifica link nel testo estratto
-    if (await containsSuspiciousLink(match)) {
-        linkFound = true;
-        // Rileva se il messaggio è frutto di una modifica per specificarlo nel log
+    if (violationReason) {
+        // Verifica se il messaggio è frutto di una modifica
         const isEdited = m.mtype === 'protocolMessage' || m.message?.protocolMessage || m.message?.editedMessage;
+        const finalReason = isEdited ? `${violationReason} (Modificato)` : violationReason;
         
-        if (isEdited) {
-            reason = 'Link iniettato tramite modifica';
-        } else {
-            reason = isWhatsAppLink(match) ? 'Link WhatsApp non autorizzato' : 'Circuito URL abbreviato';
-        }
-    }
-
-    if (linkFound) {
-        await handleViolation(conn, m, reason, isBotAdmin);
+        await handleViolation(conn, m, finalReason, isBotAdmin);
         return true;
     }
 
     return false;
 }
 
-// Handler vuoto per l'esportazione standard
 let handler = m => m;
 export default handler;
