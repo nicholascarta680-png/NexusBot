@@ -31,13 +31,6 @@ const SHORT_URL_REGEX = new RegExp(
     'gi'
 );
 
-const REQUEST_HEADERS = {
-    'User-Agent': '𝓔𝓛𝓘𝓧𝓘𝓡-𝓑𝓞𝓣/3.0',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-    'DNT': '1',
-    'Connection': 'keep-alive'
-};
-
 // --- LOGICA DI SUPPORTO ---
 
 function isWhatsAppLink(url) {
@@ -56,7 +49,6 @@ async function containsSuspiciousLink(text) {
 async function handleViolation(conn, m, reason, isBotAdmin) {
     const sender = m.sender;
     
-    // Testo con stile "Cyber-Minimal"
     const text = `
 ┏─━─━─━  〔 🛡️ 〕  ━─━─━─┓
      *SECURITY ENFORCEMENT*
@@ -100,14 +92,24 @@ export async function before(m, { conn, isAdmin, isBotAdmin, isOwner, isSam }) {
     const chat = global.db.data.chats[m.chat];
     if (!chat?.antiLink) return false;
 
+    // Rilevamento messaggio modificato (editedMessage)
+    const isEdited = m.messageStubType === 115 || m.msg?.contextInfo?.editedMessage || m.mtype === 'protocolMessage';
+
     const extractedText = (m.text || m.caption || m.msg?.caption || m.msg?.text || '').toLowerCase();
     
     let linkFound = false;
     let reason = '';
 
+    // 1. Controllo standard per link sospetti
     if (await containsSuspiciousLink(extractedText)) {
         linkFound = true;
         reason = isWhatsAppLink(extractedText) ? 'Link WhatsApp non autorizzato' : 'Circuito URL abbreviato';
+    }
+
+    // 2. Controllo specifico per tentativi di aggiramento tramite modifica
+    if (isEdited && (isWhatsAppLink(extractedText) || SHORT_URL_REGEX.test(extractedText))) {
+        linkFound = true;
+        reason = 'Link rilevato in messaggio modificato';
     }
 
     if (linkFound) {
