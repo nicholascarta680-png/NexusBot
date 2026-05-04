@@ -49,7 +49,7 @@ let handler = async (m, { conn, text }) => {
     // Messaggio con stile più elegante e "animato"
     await conn.sendMessage(m.chat, {
         text: `╔══════════════════╗\n` +
-              `║     🖤 DOC CIA SPECIALE 🖤     ║\n` +
+              `║     🖤DOCCIA SPECIALE🖤     ║\n` +
               `╚══════════════════╝\n\n` +
               `@${menzione.split('@')[0]} ${doccia}`,
         mentions: [menzione]
