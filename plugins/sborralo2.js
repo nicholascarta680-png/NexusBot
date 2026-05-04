@@ -30,8 +30,8 @@ let handler = async (m, { conn, text }) => {
 
     // --- RISULTATO FINALE ELIXIR ---
     let resultMessage = `┏─━─━─━  〔 🛡️ 〕  ━─━─━─┓
-     *ELIXIR EXECUTION*
-┗─━─━─━─━─━─━─━─━─┛
+        *ELIXIR EXECUTION*
+   ┗─━─━─━─━─━─━─━─━─┛
 
 ◈ *Vittima:* ${nomeDestinatario}
 ◈ *Risultato:* \`Imbiancamento Totale\` 🤤
