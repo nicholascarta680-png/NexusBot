@@ -4,7 +4,7 @@ import fetch from 'node-fetch'
 let user = a => '@' + a.split('@')[0]
 
 async function handler(m, { groupMetadata, command, conn, text, usedPrefix }) {
-  if (!text) return conn.reply(m.chat, `❀ \`Scrivi qualcosa!\`\n\n\`Esempio:\`\n- ${usedPrefix + command} *ratti*`, m)
+  if (!text) return conn.reply(m.chat, `『⚠️』*Attenzione*\n\nScrivi l'argomento della classifica.\nEs: *${usedPrefix + command} ratti*`, m)
 
   let ps = groupMetadata.participants.map(v => v.id)
   let shuffled = ps.sort(() => Math.random() - 0.5)
@@ -12,13 +12,26 @@ async function handler(m, { groupMetadata, command, conn, text, usedPrefix }) {
 
   const emoji = await getEmojiFromGemini(text)
 
-  let title = `\`Top 10 ${text}\` 『 ${emoji} 』\n\n` +
-    top10.map((u, i) => `*${i + 1}. ${user(u)}*`).join('\n')
+  // Grafica Avanzata ed Elegante
+  let title = `╔══ 🎉 *TOP 10 ${text.toUpperCase()}* 🎉 ══╗\n║\n`
+  
+  title += top10.map((u, i) => {
+    let medal = ''
+    switch (i) {
+      case 0: medal = '🥇'; break
+      case 1: medal = '🥈'; break
+      case 2: medal = '🥉'; break
+      default: medal = '🔹'; break
+    }
+    return `║  ${medal} *${i + 1}.* ${user(u)}`
+  }).join('\n')
 
-  // Fix Menzioni: Usiamo sendMessage con l'oggetto mentions integrato
+  title += `\n║\n╚═══════『 ${emoji} 』═══════╝`
+
+  // Invio con fix menzioni
   await conn.sendMessage(m.chat, {
     text: title,
-    mentions: top10 // Questo attiva l'evidenziazione dei tag
+    mentions: top10
   }, { quoted: m })
 }
 
@@ -27,6 +40,7 @@ handler.command = ['top']
 handler.tags = ['giochi']
 handler.group = true
 handler.admin = true
+
 export default handler
 
 async function getEmojiFromGemini(topic) {
@@ -36,8 +50,7 @@ async function getEmojiFromGemini(topic) {
   }
 
   try {
-    const prompt = `Sei un esperto di emoji. Per una classifica su "${topic}", rispondi solo e unicamente con una o al massimo due emoji appropriate. Non includere testo, spiegazioni o punteggiatura.`
-    
+    const prompt = `Sei un esperto di emoji. Per una classifica su "${topic}", rispondi solo con una o due emoji a tema.`
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
@@ -49,12 +62,10 @@ async function getEmojiFromGemini(topic) {
         })
       }
     )
-
     const data = await response.json()
-    const result = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim()
-    return result || '‼️'
-  } catch (e) {
-    return pickRandom(['✨', '🔥', '🌟', '🎯', '🌈', '💥', '🥇', '⚡'])
+    return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '🏆'
+  } catch {
+    return '🏆'
   }
 }
 
