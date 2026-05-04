@@ -1,61 +1,65 @@
 // Plug-in creato da elixir
 import axios from 'axios'
 
-// Database temporaneo (in produzione usa un file JSON o MongoDB)
-if (!global.db.data.socialTracker) global.db.data.socialTracker = {
-  targets: [], // { platform: 'tiktok', user: 'nome', lastPost: 'id', chat: 'id' }
-  interval: 600000 // 10 minuti
-}
-
 let handler = async (m, { conn, text, command, participants }) => {
   const users = participants.map((u) => conn.decodeJid(u.id))
   
-  // COMANDO MANUALE: Per annunciare un edit al volo con hidetag
+  // Inizializza il database se non esiste
+  if (!global.db.data.socialTracker) global.db.data.socialTracker = { targets: [] }
+
+  // 1. COMANDO MANUALE (.annuncio link)
   if (command === 'annuncio' || command === 'newedit') {
     if (!text) return m.reply('❌ Inserisci il link dell\'edit!')
     
-    let msg = `✨ *𝙽𝙴𝚆 𝙰𝙽𝙸𝙼𝙴 𝙴𝙳𝙸𝚃* ✨\n━━━━━━━━━━━━━━━━━━━━\n\n🎬 *Nuovo contenuto disponibile!*\nNon perderti l'ultimo edit:\n🔗 ${text}\n\n━━━━━━━━━━━━━━━━━━━━\n🔥 _Supporta con un like!_`
+    let msg = `✨ *𝚂𝚈𝚂𝚃𝙴𝙼 𝙰𝙽𝙽𝙾𝚄𝙽𝙲𝙴* ✨\n━━━━━━━━━━━━━━━━━━━━\n\n🎬 *Nuovo contenuto disponibile!*\nGuarda l'ultimo edit qui:\n🔗 ${text.trim()}\n\n━━━━━━━━━━━━━━━━━━━━\n🔥 _Supporta con un like!_`
     
     return await conn.sendMessage(m.chat, { text: msg, mentions: users }, { quoted: m })
   }
 
-  // GESTIONE AUTOMAZIONE (Solo Admin)
+  // 2. AGGIUNGI TRACKER (.addtracker tiktok|username)
   if (command === 'addtracker') {
+    if (!m.isGroup) return m.reply('Questo comando funziona solo nei gruppi.')
     let [platform, user] = text.split('|')
-    if (!platform || !user) return m.reply('Uso: .addtracker tiktok|tuousername')
+    if (!platform || !user) return m.reply('Uso: .addtracker tiktok|nomeutente')
     
     global.db.data.socialTracker.targets.push({
-      platform: platform.trim(),
+      platform: platform.trim().toLowerCase(),
       user: user.trim(),
       lastPost: '',
       chat: m.chat
     })
-    m.reply(`✅ Monitoraggio avviato per ${user} su ${platform}`)
+    m.reply(`✅ Monitoraggio avviato per *${user}* su *${platform}*\nRiceverai gli hidetag in questo gruppo.`)
   }
 }
 
-// LOOP DI CONTROLLO AUTOMATICO (Gira ogni X minuti)
+// LOOP AUTOMATICO (Ogni 5 minuti)
 setInterval(async () => {
+  if (!global.db?.data?.socialTracker?.targets) return
+
   for (let target of global.db.data.socialTracker.targets) {
     try {
-      // Qui va la logica di scraping o API per ogni piattaforma
-      // Esempio semplificato:
-      let latest = await getLatestPost(target.platform, target.user) 
-      
-      if (latest && latest.id !== target.lastPost) {
-        target.lastPost = latest.id
-        const participants = await conn.groupMetadata(target.chat).then(m => m.participants)
-        const users = participants.map(u => u.id)
+      if (target.platform === 'tiktok') {
+        // API pubblica per recuperare l'ultimo video di TikTok
+        const res = await axios.get(`https://tikwm.com{target.user}`)
+        const latestVideo = res.data.data?.videos?.[0]
 
-        let annuncio = `🔔 *𝙽𝙴𝚆 𝙿𝙾𝚂𝚃 𝙾𝙽 ${target.platform.toUpperCase()}*\n━━━━━━━━━━━━━━━━━━━━\n\n@${target.user} ha appena caricato un nuovo video!\n\n🔗 ${latest.url}\n\n━━━━━━━━━━━━━━━━━━━━`
-        
-        await conn.sendMessage(target.chat, { text: annuncio, mentions: users })
+        if (latestVideo && latestVideo.video_id !== target.lastPost) {
+          target.lastPost = latestVideo.video_id
+          
+          // Recupera i partecipanti per l'hidetag
+          const groupMetadata = await global.conn.groupMetadata(target.chat)
+          const users = groupMetadata.participants.map(u => u.id)
+
+          let annuncio = `✨ *𝙽𝙴𝚆 𝚃𝙸𝙺𝚃𝙾𝙺 𝙴𝙳𝙸𝚃* ✨\n━━━━━━━━━━━━━━━━━━━━\n\n@${target.user} ha appena caricato un nuovo video!\n\n📝 *Caption:* ${latestVideo.title || 'Nessuna'}\n🔗 https://tiktok.com{target.user}/video/${latestVideo.video_id}\n\n━━━━━━━━━━━━━━━━━━━━`
+          
+          await global.conn.sendMessage(target.chat, { text: annuncio, mentions: users })
+        }
       }
     } catch (e) {
-      console.error('Errore Tracker:', e)
+      console.error('Errore Tracker:', e.message)
     }
   }
-}, global.db.data.socialTracker.interval)
+}, 300000) 
 
 handler.help = ['annuncio', 'addtracker']
 handler.tags = ['social', 'admin']
@@ -64,10 +68,3 @@ handler.group = true
 handler.admin = true
 
 export default handler
-
-// Funzione placeholder per il fetch dei post
-async function getLatestPost(platform, user) {
-  // Qui dovresti usare servizi come Tikwm per TikTok o RapidAPI per Instagram
-  // Per ora restituisce nullo per evitare errori
-  return null 
-}
