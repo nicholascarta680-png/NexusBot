@@ -1,4 +1,5 @@
 // Plug-in creato da elixir
+// Plug-in creato da elixir
 import fs from 'fs'
 import path from 'path'
 import { createCanvas, loadImage } from 'canvas'
@@ -60,19 +61,20 @@ let handler = async (m, { conn, command, usedPrefix }) => {
     checkUser(user);
 
     if (command === 'famiglia') {
-        let menu = `*🌳 DINASTIA REALE 🌳*\n\n`
-        menu += `👉 *${usedPrefix}sposa @tag* - Chiedi la mano\n`
-        menu += `👉 *${usedPrefix}divorzia* - Sciogli l'unione\n`
-        menu += `👉 *${usedPrefix}adotta @tag* - Adotta un figlio\n`
-        menu += `👉 *${usedPrefix}disereda @tag* - Rimuovi figlio\n`
-        menu += `👉 *${usedPrefix}albero* - Visualizza albero\n`
+        let menu = `  ⋆｡˚『 ╭ \`SISTEMA DINASTICO\` ╯ 』˚｡⋆\n\n`
+        menu += `  │ 💍 *${usedPrefix}sposa* @tag\n`
+        menu += `  │ 💔 *${usedPrefix}divorzia*\n`
+        menu += `  │ 👶 *${usedPrefix}adotta* @tag\n`
+        menu += `  │ 🚫 *${usedPrefix}disereda* @tag\n`
+        menu += `  │ 🌳 *${usedPrefix}albero* @tag\n`
+        menu += `  ╰⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒`
         return m.reply(menu)
     }
 
     if (command === 'albero' || command === 'famigliamia') {
         let target = m.mentionedJid[0] || user;
         checkUser(target);
-        await m.reply('⏳ *Generazione albero in corso...*');
+        await m.reply('⏳ *Dipingendo la dinastia reale...*');
 
         const canvas = createCanvas(900, 800);
         const ctx = canvas.getContext('2d');
@@ -113,53 +115,68 @@ let handler = async (m, { conn, command, usedPrefix }) => {
                 await drawUserCard(ctx, conn, figli[i], fX, 400, 'FIGLIO/A');
             }
         }
-        return conn.sendMessage(m.chat, { image: canvas.toBuffer(), caption: `👑 *Albero di ${await conn.getName(target)}*` }, { quoted: m });
+        return conn.sendMessage(m.chat, { image: canvas.toBuffer(), caption: `👑 *ALBERO GENEALOGICO*\n⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒\nDinastia di: @${target.split('@')[0]}`, mentions: [target] }, { quoted: m });
     }
 
     if (command === 'sposa') {
         let target = m.mentionedJid[0] || (m.quoted ? m.quoted.sender : null)
-        if (!target || target === user) return m.reply('*⚠️ Tagga il partner!*')
-        if (marriages[user] || marriages[target]) return m.reply('*⚠️ Uno dei due è già occupato!*')
+        if (!target || target === user) return m.reply('`⚠️ Tagga la persona che vuoi sposare.`')
+        if (marriages[user] || marriages[target]) return m.reply('`⚠️ Uno di voi è già impegnato in un matrimonio.`')
         global.marriage_proposals = global.marriage_proposals || {}
         global.marriage_proposals[target] = { proposer: user, timeout: setTimeout(() => delete global.marriage_proposals[target], 60000) }
-        m.reply(`*💍 PROPOSTA* @${user.split('@')[0]} ha chiesto la mano di @${target.split('@')[0]}.\nScrivi *accettasposa* per accettare!`, null, { mentions: [user, target] })
+        m.reply(`💍 *PROPOSTA DI MATRIMONIO*\n\n@${user.split('@')[0]} ha chiesto la tua mano, @${target.split('@')[0]}.\n\n*Scrivi:* \`${usedPrefix}accettasposa\` *per accettare!*`, null, { mentions: [user, target] })
     }
 
     if (command === 'accettasposa') {
         let proposal = global.marriage_proposals[user]
-        if (!proposal) return m.reply('*⚠️ Nessuna proposta.*')
+        if (!proposal) return m.reply('`⚠️ Non hai proposte di matrimonio in sospeso.`')
         marriages[user] = proposal.proposer; marriages[proposal.proposer] = user;
         saveMarriages(); delete global.marriage_proposals[user];
-        m.reply('💖 *Matrimonio celebrato!*')
+        m.reply('✨ *Le campane suonano! Matrimonio celebrato con successo.* 💖')
     }
 
     if (command === 'divorzia') {
         let ex = marriages[user]
-        if (!ex) return m.reply('*⚠️ Non sei sposato.*')
+        if (!ex) return m.reply('`⚠️ Non sei vincolato da alcun matrimonio.`')
         delete marriages[user]; delete marriages[ex];
-        saveMarriages(); m.reply('💔 *Divorzio completato.*')
+        saveMarriages(); m.reply('💔 *Il legame è stato spezzato. Divorzio completato.*')
     }
 
     if (command === 'adotta') {
         let target = m.mentionedJid[0] || (m.quoted ? m.quoted.sender : null)
-        if (!target || target === user) return m.reply('*⚠️ Chi vuoi adottare?*')
+        if (!target || target === user) return m.reply('`⚠️ Tagga chi desideri adottare.`')
         checkUser(target)
-        if (global.db.data.users[target].s) return m.reply('*❌ Ha già un genitore!*')
-        global.db.data.users[user].p.push(target)
-        global.db.data.users[target].s = user
-        m.reply(`*👶 Adottato @${target.split('@')[0]}!*`, null, { mentions: [target] })
+        if (global.db.data.users[target].s) return m.reply('`❌ Questa persona ha già un genitore.`')
+        
+        global.adoption_proposals = global.adoption_proposals || {}
+        global.adoption_proposals[target] = { proposer: user, timeout: setTimeout(() => delete global.adoption_proposals[target], 60000) }
+        
+        m.reply(`👶 *RICHIESTA DI ADOZIONE*\n\n@${user.split('@')[0]} vorrebbe adottarti come figlio/a, @${target.split('@')[0]}.\n\n*Scrivi:* \`${usedPrefix}accettaadozione\` *per accettare!*`, null, { mentions: [user, target] })
+    }
+
+    if (command === 'accettaadozione') {
+        let proposal = global.adoption_proposals[user]
+        if (!proposal) return m.reply('`⚠️ Non hai richieste di adozione in sospeso.`')
+        
+        let genitore = proposal.proposer
+        checkUser(genitore)
+        global.db.data.users[genitore].p.push(user)
+        global.db.data.users[user].s = genitore
+        
+        delete global.adoption_proposals[user]
+        m.reply(`🍼 *Benvenuto in famiglia! @${user.split('@')[0]} è stato adottato ufficialmente.*`, null, { mentions: [user] })
     }
 
     if (command === 'disereda') {
         let target = m.mentionedJid[0] || (m.quoted ? m.quoted.sender : null)
-        if (!target) return m.reply('*⚠️ Chi vuoi diseredare?*')
+        if (!target) return m.reply('`⚠️ Tagga il figlio da rimuovere.`')
         let u = global.db.data.users[user]
-        if (!u.p.includes(target)) return m.reply('*❌ Non è tuo figlio.*')
+        if (!u.p.includes(target)) return m.reply('`❌ Questa persona non fa parte della tua progenie.`')
         u.p = u.p.filter(id => id !== target)
         global.db.data.users[target].s = null
-        m.reply(`*🚫 @${target.split('@')[0]} rimosso dalla famiglia.*`, null, { mentions: [target] })
+        m.reply(`🚫 *Documenti firmati. @${target.split('@')[0]} è stato rimosso dalla dinastia.*`, null, { mentions: [target] })
     }
 }
 
-handler.command = /^(albero|famigliamia|famiglia|sposa|accettasposa|divorzia|adotta|disereda)$/i
+handler.command = /^(albero|famigliamia|famiglia|sposa|accettasposa|divorzia|adotta|accettaadozione|disereda)$/i
 export default handler
