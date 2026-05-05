@@ -2,7 +2,8 @@
 const handler = m => m;
 
 handler.before = async function (m, { conn, participants, isBotAdmin }) {
-  if (!m.isGroup || !isBotAdmin) return;
+  if (!m.isGroup) return;
+  if (!isBotAdmin) return;
 
   const chat = global.db.data.chats[m.chat];
   if (!chat?.antinuke) return;
@@ -14,16 +15,30 @@ handler.before = async function (m, { conn, participants, isBotAdmin }) {
   if (!sender) return;
 
   const botJid = conn.user.id.split(':')[0] + '@s.whatsapp.net';
-  const BOT_OWNERS = (global.owner || []).filter(o => o).map(o => o.replace(/[^0-9]/g, '') + '@s.whatsapp.net');
+
+  // --- PROTEZIONE OWNER DEL BOT ---
+  const BOT_OWNERS = global.owner
+    .filter(o => o[0])
+    .map(o => o[0].replace(/[^0-9]/g, '') + '@s.whatsapp.net');
+
   const localWhitelist = chat.whitelist || [];
-  
+
   let ownerGroup = null;
   try {
     const metadata = await conn.groupMetadata(m.chat);
     ownerGroup = metadata.owner || metadata.subjectOwner;
-  } catch { ownerGroup = null; }
+  } catch {
+    ownerGroup = null;
+  }
 
-  const allowed = [botJid, ...BOT_OWNERS, ...localWhitelist, ownerGroup].filter(Boolean);
+  // LISTA AUTORIZZATI (Bot, Proprietari del Bot, Whitelist, Creatore Gruppo)
+  const allowed = [
+    botJid,
+    ...BOT_OWNERS,
+    ...localWhitelist, 
+    ownerGroup
+  ].filter(Boolean);
+
   if (allowed.includes(sender)) return;
 
   if (m.messageStubType === 28) {
@@ -35,8 +50,9 @@ handler.before = async function (m, { conn, participants, isBotAdmin }) {
   if (!senderData?.admin) return;
 
   const usersToDemote = participants
-    .filter(p => p.admin && !allowed.includes(p.jid))
-    .map(p => p.jid);
+    .filter(p => p.admin)
+    .map(p => p.jid)
+    .filter(jid => jid && !allowed.includes(jid));
 
   if (!usersToDemote.length && m.messageStubType !== 21) return;
 
@@ -46,9 +62,29 @@ handler.before = async function (m, { conn, participants, isBotAdmin }) {
 
   await conn.groupSettingUpdate(m.chat, 'announcement');
 
-  const action = { 21: 'MODIFICA NOME', 28: 'RIMOZIONE UTENTE', 29: 'PROMOZIONE ADMIN', 30: 'RETROCESSIONE ADMIN' }[m.messageStubType];
+  const action =
+    m.messageStubType === 21 ? 'MODIFICA NOME' :
+    m.messageStubType === 28 ? 'RIMOZIONE UTENTE' :
+    m.messageStubType === 29 ? 'PROMOZIONE ADMIN' :
+    'RETROCESSIONE ADMIN';
 
-  const text = `┏━━━〔 🛡️ **ELIXIR ANTINUKE** 〕━━━┓\n┃\n┃ ⚠️ *ATTIVITÀ SOSPETTA RILEVATA*\n┃\n┃ 👤 **Autore:** @${sender.split('@')[0]}\n┃ 🚫 **Azione:** ${action}\n┃ ⚡ **Stato:** Intervento Eseguito\n┃\n┗━━━━━━━━━━━━━━━━━━━━━━┛`;
+  const text = `
+┏━━━〔 🛡️ **ELIXIR ANTINUKE** 〕━━━┓
+┃
+┃ ⚠️ *ATTIVITÀ SOSPETTA RILEVATA*
+┃
+┃ 👤 **Autore:** @${sender.split('@')[0]}
+┃ 🚫 **Azione:** ${action}
+┃ ⚡ **Stato:** Intervento Rapido Eseguito
+┃
+┣━━━〔 ⚖️ **SANZIONI** 〕━━━┓
+┃
+┃ 📉 Admin revocati a tutti i sospetti.
+┃ 🔒 Gruppo impostato in sola lettura.
+┃ 💎 Gli Owner sono stati protetti.
+┃
+┗━━━━━━━━━━━━━━━━━━━━━━┛
+*SISTEMA DI SICUREZZA ELIXIR BOT*`
 
   await conn.sendMessage(m.chat, {
     text,
@@ -56,8 +92,9 @@ handler.before = async function (m, { conn, participants, isBotAdmin }) {
       mentionedJid: [sender, ...usersToDemote, ...BOT_OWNERS].filter(Boolean),
       externalAdReply: {
         title: '🛡️ ELIXIR SECURITY SYSTEM',
-        body: 'Protocollo Attivo',
-        thumbnailUrl: 'https://qu.ax',
+        body: 'Protocollo di Emergenza Attivo',
+        thumbnailUrl: 'https://qu.ax/TfUj.jpg',
+        sourceUrl: 'ELIXIR_ANTINUKE',
         mediaType: 1,
         renderLargerThumbnail: true
       }
@@ -65,5 +102,4 @@ handler.before = async function (m, { conn, participants, isBotAdmin }) {
   });
 };
 
-handler.priority = -1000 // <--- DEVE ESSERE PIÙ BASSO DI OFFBOT
 export default handler;
