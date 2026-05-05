@@ -5,18 +5,17 @@ import path from 'path'
 const marriagesFile = path.resolve('media/database/sposi.json');
 
 let handler = async (m, { conn, usedPrefix, command }) => {
+    
     // 1. GESTIONE RESET GLOBALE (TUTTI)
     if (command === 'resetallfamiglia' || command === 'purgatree') {
-        await m.reply('⏳ *Inizializzazione reset globale...*')
+        await m.reply('`⏳ Inizializzazione epurazione globale delle dinastie...`')
 
-        // Svuota il file JSON dei matrimoni
         try {
             fs.writeFileSync(marriagesFile, JSON.stringify({}, null, 2))
         } catch (e) {
-            return m.reply('*❌ Errore nel reset del file matrimoni.*')
+            return m.reply('`❌ Errore critico nel reset del registro matrimoniale.`')
         }
 
-        // Svuota i legami (p e s) di ogni utente nel database
         let users = global.db.data.users
         let count = 0
         Object.keys(users).forEach(jid => {
@@ -27,20 +26,25 @@ let handler = async (m, { conn, usedPrefix, command }) => {
             }
         })
 
-        return m.reply(`*⚠️ RESET GLOBALE COMPLETATO ⚠️*\n\n🧹 Il registro è stato azzerato.\n👥 Legami rimossi da *${count}* profili.`)
+        let report = `  ⋆｡˚『 ╭ \`PURGA GLOBALE\` ╯ 』˚｡⋆\n\n`
+        report += `  │ ⚠️ *Stato:* Tabula Rasa\n`
+        report += `  │ 🧹 *Registri:* Azzerati\n`
+        report += `  │ 👥 *Profili Purgati:* ${count}\n`
+        report += `  ╰⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒`
+        
+        return m.reply(report)
     }
 
     // 2. GESTIONE RESET SINGOLO (TAG)
     if (command === 'resetfamiglia') {
         let target = m.mentionedJid[0] || (m.quoted ? m.quoted.sender : null)
-        if (!target) return m.reply(`*⚠️ Tagga o rispondi a qualcuno per resettarlo!*`)
+        if (!target) return m.reply('`⚠️ Identifica un bersaglio tramite tag o risposta.`')
 
         let marriages = {}
         try {
             if (fs.existsSync(marriagesFile)) marriages = JSON.parse(fs.readFileSync(marriagesFile, 'utf8'))
         } catch (e) { marriages = {} }
 
-        // Reset Matrimonio nel file JSON
         let partner = marriages[target]
         if (partner) {
             delete marriages[target]
@@ -48,7 +52,6 @@ let handler = async (m, { conn, usedPrefix, command }) => {
             fs.writeFileSync(marriagesFile, JSON.stringify(marriages, null, 2))
         }
 
-        // Reset nel Database Globale (Figli/Genitori)
         if (global.db.data.users[target]) {
             let u = global.db.data.users[target]
             if (u.p && Array.isArray(u.p)) {
@@ -64,7 +67,13 @@ let handler = async (m, { conn, usedPrefix, command }) => {
             }
         }
 
-        return m.reply(`*🧹 Dinastia di @${target.split('@')[0]} cancellata.*`, null, { mentions: [target] })
+        let msg = `  ⋆｡˚『 ╭ \`RESET DINASTIA\` ╯ 』˚｡⋆\n\n`
+        msg += `  │ 👤 *Soggetto:* @${target.split('@')[0]}\n`
+        msg += `  │ 🧹 *Azione:* Dinastia cancellata\n`
+        msg += `  │ 🚫 *Stato:* Adottabile / Libero\n`
+        msg += `  ╰⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒`
+
+        return m.reply(msg, null, { mentions: [target] })
     }
 }
 
@@ -72,7 +81,6 @@ handler.help = ['resetfamiglia @tag', 'resetallfamiglia']
 handler.tags = ['owner']
 handler.command = /^(resetfamiglia|resetallfamiglia|purgatree)$/i
 
-// Solo gli owner definiti in config.js possono usare questi comandi
 handler.owner = true 
 handler.rowner = true 
 
