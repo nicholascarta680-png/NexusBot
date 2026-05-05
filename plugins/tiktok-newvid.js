@@ -1,74 +1,77 @@
 // Plug-in creato da elixir
 let handler = async (m, { conn, text, command, isOwner }) => {
-    if (!isOwner) return m.reply("❌ Accesso negato.")
-    if (!text) return m.reply(`💡 *Uso:* .${command} [Link TikTok]`)
+  if (!isOwner) return m.reply("❌ Accesso negato.");
+  if (!text) return m.reply(`💡 *Uso:* .${command} [Link TikTok]`);
 
-    // Recupera tutti i gruppi attivi
-    let groups = Object.keys(await conn.groupFetchAllParticipating())
-    if (groups.length === 0) return m.reply("⚠️ Nessun gruppo trovato.")
+  // Filtra solo i gruppi attivi dalla memoria del bot
+  const groups = Object.entries(conn.chats)
+    .filter(([jid, chat]) => jid.endsWith('@g.us') && chat.isChats)
+    .map(([jid]) => jid);
 
-    let total = groups.length
-    let success = 0
-    let listReport = ""
+  if (!groups.length) return m.reply('⚠️ Il bot non è presente in nessun gruppo attivo.');
 
-    // 1. MESSAGGIO DI AVVIO (Inviato nel gruppo dove scrivi il comando)
-    await conn.sendMessage(m.chat, { 
-        text: `✨ *SISTEMA DI DISTRIBUZIONE AVVIATO*\n\n📡 *Target:* ${total} Gruppi\n🔗 *Contenuto:* ${text}\n\n_Il bot sta procedendo con l'invio e il tag invisibile. Attendi il report finale qui._` 
-    }, { quoted: m })
+  let total = groups.length;
+  let success = 0;
+  let listReport = "";
 
-    for (let id of groups) {
-        try {
-            let groupMetadata = await conn.groupMetadata(id).catch(e => null)
-            if (!groupMetadata) continue
-            
-            let participants = groupMetadata.participants.map(u => conn.decodeJid(u.id))
-            let groupName = groupMetadata.subject
+  // 1. MESSAGGIO DI PARTENZA
+  await conn.sendMessage(m.chat, { 
+    text: `🚀 *DISTRIBUZIONE CONTENUTO AVVIATA*\n\n📦 *Target:* ${total} Gruppi\n🔗 *Link:* ${text}\n\n_Il report dettagliato verrà generato al termine dell'operazione._` 
+  }, { quoted: m });
 
-            // INVIO NEI GRUPPI (Tag Invisibile)
-            await conn.relayMessage(id, {
-                extendedTextMessage: {
-                    text: text,
-                    contextInfo: {
-                        mentionedJid: participants,
-                        isForwarded: true,
-                        forwardingScore: 999,
-                        externalAdReply: {
-                            title: '🎥 NUOVO VIDEO DISPONIBILE',
-                            body: 'Clicca per guardare su TikTok',
-                            thumbnailUrl: 'https://qu.ax', 
-                            sourceUrl: text,
-                            mediaType: 1,
-                            renderLargerThumbnail: true
-                        }
-                    }
-                }
-            }, {})
-            
-            success++
-            listReport += `  ◦  ✅ ${groupName}\n`
+  for (let jid of groups) {
+    try {
+      // Recupero metadati e partecipanti per il tag invisibile
+      const metadata = await conn.groupMetadata(jid);
+      const participants = metadata.participants.map(p => p.id);
+      const groupName = metadata.subject;
 
-            // Delay di sicurezza per prevenire il ban
-            await new Promise(resolve => setTimeout(resolve, 3500)) 
-
-        } catch (e) {
-            listReport += `  ◦  ❌ _Errore nel caricamento di un gruppo_\n`
+      // Invio messaggio elegante con relayMessage
+      await conn.relayMessage(jid, {
+        extendedTextMessage: {
+          text: text,
+          contextInfo: {
+            mentionedJid: participants,
+            isForwarded: true,
+            forwardingScore: 999,
+            externalAdReply: {
+              title: '🎥 NUOVO VIDEO DISPONIBILE',
+              body: 'Guarda ora su TikTok e supporta con un ❤️',
+              thumbnailUrl: 'https://qu.ax', 
+              sourceUrl: text,
+              mediaType: 1,
+              renderLargerThumbnail: true
+            }
+          }
         }
+      }, {});
+
+      success++;
+      listReport += `  ◦ ✅ *${groupName}*\n`;
+
+      // Delay anti-ban bilanciato
+      await new Promise(res => setTimeout(res, 2500));
+
+    } catch (e) {
+      console.log(`Errore nel gruppo ${jid}`, e);
+      listReport += `  ◦ ❌ *Errore ID:* ${jid.split('@')[0]}\n`;
     }
+  }
 
-    // 2. REPORT FINALE (Inviato nello stesso gruppo originale)
-    let reportFinal = `📊 *REPORT DISTRIBUZIONE*\n\n`
-    reportFinal += `✅ *Completati:* ${success}\n`
-    reportFinal += `❌ *Falliti:* ${total - success}\n\n`
-    reportFinal += `📝 *LISTA DESTINAZIONI:*\n${listReport}\n`
-    reportFinal += `*Operazione conclusa con successo.*`
+  // 2. REPORT FINALE NELLA STESSA CHAT
+  let reportFinal = `✨ *OPERAZIONE CONCLUSA*\n\n` +
+                    `📊 *Statistiche invio:*\n` +
+                    `  • Successi: ${success}\n` +
+                    `  • Falliti: ${total - success}\n\n` +
+                    `📝 *DETTAGLIO GRUPPI:*\n${listReport}\n` +
+                    `*Sistema di notifica globale attivo.*`;
 
-    await conn.sendMessage(m.chat, { text: reportFinal }, { quoted: m })
-}
+  await conn.sendMessage(m.chat, { text: reportFinal }, { quoted: m });
+};
 
-handler.help = ['newvid']
-handler.tags = ['owner']
-handler.command = /^(newvid|tiktok)$/i
-handler.owner = true
-handler.group = true // Assicura che funzioni nei gruppi
+handler.help = ['newvid'];
+handler.tags = ['owner'];
+handler.command = /^(newvid|tiktok)$/i;
+handler.owner = true;
 
-export default handler
+export default handler;
