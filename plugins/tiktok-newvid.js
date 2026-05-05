@@ -1,32 +1,26 @@
 // Plug-in creato da elixir
 let handler = async (m, { conn, text, command, isOwner }) => {
   if (!isOwner) return m.reply("❌ Accesso negato.");
-  if (!text) return m.reply(`💡 *Uso:* .${command} [Link TikTok]`);
+  if (!text) return m.reply(`💡 *Uso:* .${command} [Link]`);
 
-  // Filtra solo i gruppi attivi dalla memoria del bot
   const groups = Object.entries(conn.chats)
     .filter(([jid, chat]) => jid.endsWith('@g.us') && chat.isChats)
     .map(([jid]) => jid);
 
-  if (!groups.length) return m.reply('⚠️ Il bot non è presente in nessun gruppo attivo.');
+  if (!groups.length) return m.reply('⚠️ Nessun gruppo trovato.');
 
   let total = groups.length;
   let success = 0;
   let listReport = "";
 
-  // 1. MESSAGGIO DI PARTENZA
-  await conn.sendMessage(m.chat, { 
-    text: `🚀 *DISTRIBUZIONE CONTENUTO AVVIATA*\n\n📦 *Target:* ${total} Gruppi\n🔗 *Link:* ${text}\n\n_Il report dettagliato verrà generato al termine dell'operazione._` 
-  }, { quoted: m });
+  await m.reply(`🚀 *INVIO TURBO AVVIATO*\n📦 Destinazioni: ${total}\n⏱️ Delay: 0.5s\n\n_Il report arriverà a breve..._`);
 
   for (let jid of groups) {
     try {
-      // Recupero metadati e partecipanti per il tag invisibile
-      const metadata = await conn.groupMetadata(jid);
-      const participants = metadata.participants.map(p => p.id);
-      const groupName = metadata.subject;
+      // Usa i partecipanti in cache invece di scaricare i metadata (risparmia tempo)
+      const participants = conn.chats[jid]?.metadata?.participants.map(p => p.id) || [];
+      const groupName = conn.chats[jid]?.metadata?.subject || "Gruppo";
 
-      // Invio messaggio elegante con relayMessage
       await conn.relayMessage(jid, {
         extendedTextMessage: {
           text: text,
@@ -36,7 +30,7 @@ let handler = async (m, { conn, text, command, isOwner }) => {
             forwardingScore: 999,
             externalAdReply: {
               title: '🎥 NUOVO VIDEO DISPONIBILE',
-              body: 'Guarda ora su TikTok e supporta con un ❤️',
+              body: 'Guarda ora su TikTok! ❤️',
               thumbnailUrl: 'https://qu.ax', 
               sourceUrl: text,
               mediaType: 1,
@@ -47,24 +41,19 @@ let handler = async (m, { conn, text, command, isOwner }) => {
       }, {});
 
       success++;
-      listReport += `  ◦ ✅ *${groupName}*\n`;
+      listReport += `✅ *${groupName}*\n`;
 
-      // Delay anti-ban bilanciato
-      await new Promise(res => setTimeout(res, 2500));
+      // Delay ridotto al minimo per velocità estrema
+      await new Promise(res => setTimeout(res, 500));
 
     } catch (e) {
-      console.log(`Errore nel gruppo ${jid}`, e);
-      listReport += `  ◦ ❌ *Errore ID:* ${jid.split('@')[0]}\n`;
+      listReport += `❌ *Errore:* ${jid.split('@')[0]}\n`;
     }
   }
 
-  // 2. REPORT FINALE NELLA STESSA CHAT
-  let reportFinal = `✨ *OPERAZIONE CONCLUSA*\n\n` +
-                    `📊 *Statistiche invio:*\n` +
-                    `  • Successi: ${success}\n` +
-                    `  • Falliti: ${total - success}\n\n` +
-                    `📝 *DETTAGLIO GRUPPI:*\n${listReport}\n` +
-                    `*Sistema di notifica globale attivo.*`;
+  let reportFinal = `✨ *INVIO TURBO COMPLETATO*\n\n` +
+                    `📊 *Statistiche:* ${success}/${total}\n\n` +
+                    `📋 *LISTA GRUPPI:*\n${listReport}`;
 
   await conn.sendMessage(m.chat, { text: reportFinal }, { quoted: m });
 };
