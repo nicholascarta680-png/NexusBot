@@ -28,8 +28,10 @@ handler.before = async function (m, { isOwner }) {
     }
 }
 
-handler.priority = -100 // PRIORITÀ MASSIMA
+// ... (codice precedente uguale)
+handler.priority = -100 
 handler.command = /^(onbot|offbot)$/i
+// ...
 handler.group = true
 
 export default handler
