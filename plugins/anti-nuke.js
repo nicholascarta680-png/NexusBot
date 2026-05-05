@@ -1,5 +1,6 @@
 // Plug-in creato da elixir
 const handler = m => m;
+
 handler.before = async function (m, { conn, participants, isBotAdmin }) {
   if (!m.isGroup) return;
   if (!isBotAdmin) return;
@@ -14,8 +15,6 @@ handler.before = async function (m, { conn, participants, isBotAdmin }) {
   if (!sender) return;
 
   const botJid = conn.user.id.split(':')[0] + '@s.whatsapp.net';
-
-  // --- PROTEZIONE OWNER DEL BOT ---
   const BOT_OWNERS = global.owner
     .filter(o => o[0])
     .map(o => o[0].replace(/[^0-9]/g, '') + '@s.whatsapp.net');
@@ -30,14 +29,7 @@ handler.before = async function (m, { conn, participants, isBotAdmin }) {
     ownerGroup = null;
   }
 
-  // LISTA AUTORIZZATI (Bot, Proprietari del Bot, Whitelist, Creatore Gruppo)
-  const allowed = [
-    botJid,
-    ...BOT_OWNERS,
-    ...localWhitelist, 
-    ownerGroup
-  ].filter(Boolean);
-
+  const allowed = [botJid, ...BOT_OWNERS, ...localWhitelist, ownerGroup].filter(Boolean);
   if (allowed.includes(sender)) return;
 
   if (m.messageStubType === 28) {
@@ -67,27 +59,7 @@ handler.before = async function (m, { conn, participants, isBotAdmin }) {
     m.messageStubType === 29 ? 'PROMOZIONE ADMIN' :
     'RETROCESSIONE ADMIN';
 
-  // --- MODIFICA PER MODALITÀ INATTIVA ---
-  // Se la chat è in modalità inattiva, aggiungiamo una nota nel log
-  const isInattivo = chat.isBanned ? "\n⚠️ *STATO: MODALITÀ INATTIVA ATTIVA*" : "";
-
-  const text = `
-┏━━━〔 🛡️ **ELIXIR ANTINUKE** 〕━━━┓
-┃
-┃ ⚠️ *ATTIVITÀ SOSPETTA RILEVATA*${isInattivo}
-┃
-┃ 👤 **Autore:** @${sender.split('@')[0]}
-┃ 🚫 **Azione:** ${action}
-┃ ⚡ **Stato:** Intervento Rapido Eseguito
-┃
-┣━━━〔 ⚖️ **SANZIONI** 〕━━━┓
-┃
-┃ 📉 Admin revocati a tutti i sospetti.
-┃ 🔒 Gruppo impostato in sola lettura.
-┃ 💎 Gli Owner sono stati protetti.
-┃
-┗━━━━━━━━━━━━━━━━━━━━━━┛
-*SISTEMA DI SICUREZZA ELIXIR BOT*`
+  const text = `┏━━━〔 🛡️ **ELIXIR ANTINUKE** 〕━━━┓\n┃\n┃ ⚠️ *ATTIVITÀ SOSPETTA RILEVATA*\n┃\n┃ 👤 **Autore:** @${sender.split('@')[0]}\n┃ 🚫 **Azione:** ${action}\n┃ ⚡ **Stato:** Intervento Eseguito\n┃\n┗━━━━━━━━━━━━━━━━━━━━━━┛`
 
   await conn.sendMessage(m.chat, {
     text,
@@ -95,17 +67,13 @@ handler.before = async function (m, { conn, participants, isBotAdmin }) {
       mentionedJid: [sender, ...usersToDemote, ...BOT_OWNERS].filter(Boolean),
       externalAdReply: {
         title: '🛡️ ELIXIR SECURITY SYSTEM',
-        body: 'Protocollo di Emergenza Attivo',
+        body: 'Protocollo Attivo',
         thumbnailUrl: 'https://qu.ax',
-        sourceUrl: 'ELIXIR_ANTINUKE',
         mediaType: 1,
         renderLargerThumbnail: true
       }
     },
   });
-
-  // Fondamentale: non mettiamo 'return true' qui affinché il sistema antinuke 
-  // possa finire l'esecuzione indipendentemente dal plugin dei comandi.
 };
 
 export default handler;
