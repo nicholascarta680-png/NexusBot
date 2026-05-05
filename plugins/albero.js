@@ -59,10 +59,35 @@ async function drawUserCard(ctx, conn, id, x, y, role) {
 }
 
 // --- HANDLER PRINCIPALE ---
-let handler = async (m, { conn, command, usedPrefix, mmentionedJid }) => {
+let handler = async (m, { conn, command, usedPrefix }) => {
     let user = m.sender;
     checkUser(user);
 
+    // --- COMANDO RESET (SOLO OWNER) ---
+    if (command === 'resetfamiglia') {
+        let isOwner = [conn.user.jid, ...global.owner.map(v => v + '@s.whatsapp.net')].includes(m.sender)
+        if (!isOwner) return m.reply('*❌ Accesso Negato. Solo il Creatore può usare questo comando.*')
+
+        let target = m.mentionedJid[0] || (m.quoted ? m.quoted.sender : null)
+        if (!target) return m.reply('*⚠️ Tagga o rispondi al messaggio di chi vuoi resettare!*')
+
+        let partner = marriages[target]
+        if (partner) { delete marriages[target]; delete marriages[partner]; }
+        
+        let u = global.db.data.users[target]
+        if (u) {
+            if (u.p) { u.p.forEach(f => { if(global.db.data.users[f]) global.db.data.users[f].s = null }); u.p = []; }
+            if (u.s) { 
+                let g = global.db.data.users[u.s]; 
+                if(g && g.p) g.p = g.p.filter(id => id !== target);
+                u.s = null; 
+            }
+        }
+        saveMarriages();
+        return m.reply(`*🧹 Tabula Rasa: La dinastia di @${target.split('@')[0]} è stata cancellata dal registro reale.*`, null, { mentions: [target] })
+    }
+
+    // --- ALTRI COMANDI (PER TUTTI) ---
     if (command === 'famiglia') {
         let menu = `*🌳 DINASTIA REALE 🌳*\n\n`
         menu += `👉 *${usedPrefix}sposa @tag* - Chiedi la mano\n`
@@ -70,7 +95,6 @@ let handler = async (m, { conn, command, usedPrefix, mmentionedJid }) => {
         menu += `👉 *${usedPrefix}adotta @tag* - Adotta un figlio\n`
         menu += `👉 *${usedPrefix}disereda @tag* - Rimuovi figlio\n`
         menu += `👉 *${usedPrefix}albero* - Visualizza albero\n`
-        menu += `👉 *${usedPrefix}resetfamiglia* - Tabula rasa\n`
         return m.reply(menu)
     }
 
@@ -119,7 +143,6 @@ let handler = async (m, { conn, command, usedPrefix, mmentionedJid }) => {
                 await drawUserCard(ctx, conn, figli[i], fX, 400, 'FIGLIO/A');
             }
         }
-
         return conn.sendMessage(m.chat, { image: canvas.toBuffer(), caption: `👑 *Albero di ${await conn.getName(target)}*` }, { quoted: m });
     }
 
@@ -127,7 +150,6 @@ let handler = async (m, { conn, command, usedPrefix, mmentionedJid }) => {
         let target = m.mentionedJid[0] || (m.quoted ? m.quoted.sender : null)
         if (!target || target === user) return m.reply('*⚠️ Tagga il partner!*')
         if (marriages[user] || marriages[target]) return m.reply('*⚠️ Uno dei due è già occupato!*')
-        
         global.marriage_proposals = global.marriage_proposals || {}
         global.marriage_proposals[target] = { proposer: user, timeout: setTimeout(() => delete global.marriage_proposals[target], 60000) }
         m.reply(`*💍 PROPOSTA* @${user.split('@')[0]} ha chiesto la mano di @${target.split('@')[0]}.\nScrivi *${usedPrefix}accettasposa* per accettare!`, null, { mentions: [user, target] })
@@ -158,23 +180,14 @@ let handler = async (m, { conn, command, usedPrefix, mmentionedJid }) => {
         m.reply(`*👶 Adottato @${target.split('@')[0]}!*`, null, { mentions: [target] })
     }
 
-    if (command === 'resetfamiglia') {
-        let isOwner = [conn.user.jid, ...global.owner.map(v => v + '@s.whatsapp.net')].includes(m.sender)
+    if (command === 'disereda') {
         let target = m.mentionedJid[0] || (m.quoted ? m.quoted.sender : null)
-        let toReset = target && isOwner ? target : m.sender
-        if (target && !isOwner) return m.reply('*❌ Solo l\'admin può resettare altri!*')
-
-        let partner = marriages[toReset]
-        if (partner) { delete marriages[toReset]; delete marriages[partner]; }
-        let u = global.db.data.users[toReset]
-        if (u.p) { u.p.forEach(f => { if(global.db.data.users[f]) global.db.data.users[f].s = null }); u.p = []; }
-        if (u.s) { 
-            let g = global.db.data.users[u.s]; 
-            if(g && g.p) g.p = g.p.filter(id => id !== toReset);
-            u.s = null; 
-        }
-        saveMarriages();
-        m.reply(`*🧹 Dinastia di @${toReset.split('@')[0]} azzerata.*`, null, { mentions: [toReset] })
+        if (!target) return m.reply('*⚠️ Chi vuoi diseredare?*')
+        let u = global.db.data.users[user]
+        if (!u.p.includes(target)) return m.reply('*❌ Non è tuo figlio.*')
+        u.p = u.p.filter(id => id !== target)
+        global.db.data.users[target].s = null
+        m.reply(`*🚫 @${target.split('@')[0]} rimosso dalla famiglia.*`, null, { mentions: [target] })
     }
 }
 
