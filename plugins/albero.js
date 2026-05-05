@@ -123,7 +123,7 @@ let handler = async (m, { conn, command, usedPrefix }) => {
         if (marriages[user] || marriages[target]) return m.reply('`⚠️ Uno di voi è già impegnato.`')
         
         global.marriage_proposals = global.marriage_proposals || {}
-        global.marriage_proposals[target] = { proposer: user, timeout: setTimeout(() => delete global.marriage_proposals[target], 60000) }
+        global.marriage_proposals[target] = { proposer: user, target: target, timeout: setTimeout(() => delete global.marriage_proposals[target], 60000) }
         
         const buttons = [
             { buttonId: `${usedPrefix}accettasposa`, buttonText: { displayText: '💍 ACCETTA' }, type: 1 },
@@ -141,6 +141,8 @@ let handler = async (m, { conn, command, usedPrefix }) => {
     if (command === 'accettasposa') {
         let proposal = global.marriage_proposals[user]
         if (!proposal) return m.reply('`⚠️ Non hai proposte in sospeso.`')
+        if (m.sender !== proposal.target) return m.reply('`❌ Solo il destinatario della proposta può accettare.`')
+        
         marriages[user] = proposal.proposer; marriages[proposal.proposer] = user;
         saveMarriages(); delete global.marriage_proposals[user];
         m.reply('✨ *Le campane suonano! Matrimonio celebrato.* 💖')
@@ -153,7 +155,7 @@ let handler = async (m, { conn, command, usedPrefix }) => {
         if (global.db.data.users[target].s) return m.reply('`❌ Questa persona ha già un genitore.`')
         
         global.adoption_proposals = global.adoption_proposals || {}
-        global.adoption_proposals[target] = { proposer: user, timeout: setTimeout(() => delete global.adoption_proposals[target], 60000) }
+        global.adoption_proposals[target] = { proposer: user, target: target, timeout: setTimeout(() => delete global.adoption_proposals[target], 60000) }
         
         const buttons = [
             { buttonId: `${usedPrefix}accettaadozione`, buttonText: { displayText: '🍼 ACCETTA' }, type: 1 },
@@ -171,6 +173,8 @@ let handler = async (m, { conn, command, usedPrefix }) => {
     if (command === 'accettaadozione') {
         let proposal = global.adoption_proposals[user]
         if (!proposal) return m.reply('`⚠️ Non hai richieste in sospeso.`')
+        if (m.sender !== proposal.target) return m.reply('`❌ Solo chi deve essere adottato può accettare.`')
+
         let genitore = proposal.proposer
         checkUser(genitore)
         global.db.data.users[genitore].p.push(user)
@@ -180,12 +184,33 @@ let handler = async (m, { conn, command, usedPrefix }) => {
     }
 
     if (command === 'rifiuta') {
+        let propMar = global.marriage_proposals[user]
+        let propAdo = global.adoption_proposals[user]
+        
+        if (!propMar && !propAdo) return m.reply('`⚠️ Non hai richieste da rifiutare.`')
+        if (m.sender !== user) return m.reply('`❌ Solo il destinatario può rifiutare.`')
+        
         delete global.marriage_proposals[user]
         delete global.adoption_proposals[user]
         m.reply('`❌ La richiesta è stata rifiutata.`')
     }
 
-    // ... (Mantieni il resto come divorzia e disereda)
+    if (command === 'divorzia') {
+        let ex = marriages[user]
+        if (!ex) return m.reply('`⚠️ Non sei sposato.`')
+        delete marriages[user]; delete marriages[ex];
+        saveMarriages(); m.reply('💔 *Divorzio completato.*')
+    }
+
+    if (command === 'disereda') {
+        let target = m.mentionedJid[0] || (m.quoted ? m.quoted.sender : null)
+        if (!target) return m.reply('`⚠️ Chi vuoi diseredare?*')
+        let u = global.db.data.users[user]
+        if (!u.p.includes(target)) return m.reply('`❌ Non è tuo figlio.`')
+        u.p = u.p.filter(id => id !== target)
+        global.db.data.users[target].s = null
+        m.reply(`🚫 *Documenti firmati. @${target.split('@')[0]} è stato rimosso dalla dinastia.*`, null, { mentions: [target] })
+    }
 }
 
 handler.command = /^(albero|famigliamia|famiglia|sposa|accettasposa|divorzia|adotta|accettaadozione|disereda|rifiuta)$/i
