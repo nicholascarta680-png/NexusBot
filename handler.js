@@ -395,6 +395,7 @@ if (m.message?.protocolMessage?.type === 'MESSAGE_EDIT') {
             antiLink2: false,
             reaction: false,
             antispam: false,
+            safetyMode: false,
             expired: 0,
             users: {}
         })
