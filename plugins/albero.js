@@ -1,222 +1,144 @@
+// Plug-in creato da elixir
 import fs from 'fs'
 import path from 'path'
-import { createCanvas, loadImage } from 'canvas'
+import { createCanvas, loadImage, registerFont } from 'canvas'
 
-// --- CONFIGURAZIONE DATABASE ---
+// --- DATABASE SETUP ---
 const marriagesFile = path.resolve('media/database/sposi.json');
 if (!fs.existsSync(path.dirname(marriagesFile))) fs.mkdirSync(path.dirname(marriagesFile), { recursive: true });
 
 let marriages = loadMarriages();
-global.db = global.db || { data: { users: {} } }
-
 function loadMarriages() {
-    try {
-        return fs.existsSync(marriagesFile) ? JSON.parse(fs.readFileSync(marriagesFile, 'utf8')) : {};
-    } catch (e) { return {}; }
+    try { return fs.existsSync(marriagesFile) ? JSON.parse(fs.readFileSync(marriagesFile, 'utf8')) : {}; } 
+    catch (e) { return {}; }
 }
-
-function saveMarriages() {
-    fs.writeFileSync(marriagesFile, JSON.stringify(marriages, null, 2));
-}
-
-// --- UTILS & DESIGN ---
-const design = {
-    header: (title) => `ㅤ⋆｡˚『 ╭ \`${title}\` ╯ 』˚｡⋆\n╭`,
-    line: "│",
-    footer: "*╰⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*",
-    divider: "├─ׄ──⭒─ׄ─ׅ"
-};
-
-const formatMessage = (title, content) => `${design.header(title)}\n${content}\n${design.footer}`;
+function saveMarriages() { fs.writeFileSync(marriagesFile, JSON.stringify(marriages, null, 2)); }
 
 const checkUser = (id) => {
     if (!id) return
     if (!global.db.data.users[id]) global.db.data.users[id] = {}
     let u = global.db.data.users[id]
-    if (!Array.isArray(u.p)) u.p = [] // Figli
-    if (u.s === undefined) u.s = null // Genitore
+    if (!Array.isArray(u.p)) u.p = [] 
+    if (u.s === undefined) u.s = null 
 }
 
-// --- FUNZIONI GRAFICHE ---
-async function createMarriageImage(user1, user2, conn, isMarriage = true) {
-    const canvas = createCanvas(800, 500);
-    const ctx = canvas.getContext('2d');
-    
-    const grad = ctx.createLinearGradient(0, 0, 0, 500);
-    grad.addColorStop(0, isMarriage ? '#FF6F61' : '#4B5EAA');
-    grad.addColorStop(1, isMarriage ? '#FFF5EE' : '#E6E6FA');
-    ctx.fillStyle = grad; ctx.fillRect(0, 0, 800, 500);
+// --- ENGINE GRAFICO ---
+async function drawUserCard(ctx, conn, id, x, y, role) {
+    const cardW = 180, cardH = 70;
+    const radius = 15;
 
-    const drawAvatar = async (id, x, y) => {
-        let img;
-        try {
-            let url = await conn.profilePictureUrl(id, 'image').catch(() => 'https://telegra.ph/file/2416c30c33306fa33c5e0.jpg');
-            img = await loadImage(url);
-        } catch { img = await loadImage('https://telegra.ph/file/2416c30c33306fa33c5e0.jpg'); }
+    // Shadow & Card Background
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.shadowBlur = 10;
+    ctx.fillStyle = '#1e1e2e';
+    ctx.beginPath();
+    ctx.roundRect(x - cardW/2, y - cardH/2, cardW, cardH, radius);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Border basato sul ruolo
+    ctx.strokeStyle = role === 'GENITORE' ? '#f5c2e7' : (role === 'PARTNER' ? '#f38ba8' : '#89b4fa');
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Avatar
+    try {
+        let url = await conn.profilePictureUrl(id, 'image').catch(() => 'https://telegra.ph/file/2416c30c33306fa33c5e0.jpg');
+        let img = await loadImage(url);
         ctx.save();
-        ctx.beginPath(); ctx.arc(x, y, 90, 0, Math.PI * 2); ctx.clip();
-        ctx.drawImage(img, x - 90, y - 90, 180, 180);
+        ctx.beginPath();
+        ctx.arc(x - 55, y, 25, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.drawImage(img, x - 80, y - 25, 50, 50);
         ctx.restore();
-        ctx.strokeStyle = isMarriage ? '#FF69B4' : '#4B5EAA';
-        ctx.lineWidth = 6; ctx.stroke();
-    };
+    } catch (e) {}
 
-    await drawAvatar(user1, 200, 200);
-    await drawAvatar(user2, 600, 200);
-
-    ctx.fillStyle = isMarriage ? '#FF1493' : '#4B5EAA';
-    ctx.font = 'bold 40px Arial'; ctx.textAlign = 'center';
-    ctx.fillText(isMarriage ? 'Matrimonio Celebrato!' : 'Divorzio Completato', 400, 380);
+    // Testo
+    ctx.fillStyle = '#cdd6f4';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.textAlign = 'left';
+    let name = (await conn.getName(id)).substring(0, 12);
+    ctx.fillText(name, x - 20, y - 5);
     
-    return canvas.toBuffer();
+    ctx.fillStyle = ctx.strokeStyle;
+    ctx.font = '10px sans-serif';
+    ctx.fillText(role, x - 20, y + 15);
 }
 
-// --- HANDLER PRINCIPALE ---
-let handler = async (m, { conn, text, command, usedPrefix }) => {
-    let user = m.sender
-    checkUser(user)
-
-    if (command === 'famiglia') {
-        let menu = `*🌳 SISTEMA GENEALOGICO REALE 🌳*\n\n`
-        menu += `👉 *${usedPrefix}sposa @tag* - Proposta di matrimonio\n`
-        menu += `👉 *${usedPrefix}divorzia* - Sciogli l'unione\n`
-        menu += `👉 *${usedPrefix}adotta @tag* - Adotta un figlio\n`
-        menu += `👉 *${usedPrefix}disereda @tag* - Rimuovi un figlio\n`
-        menu += `👉 *${usedPrefix}albero* - Visualizza la dinastia\n`
-        return m.reply(menu)
-    }
-
-    if (command === 'sposa') {
-        let target = m.mentionedJid[0] || (m.quoted ? m.quoted.sender : null)
-        if (!target || target === user) return m.reply('*⚠️ Tagga il partner!*')
-        checkUser(target)
-
-        if (marriages[user]) return m.reply('*⚠️ Sei già sposato!*')
-        if (marriages[target]) return m.reply('*⚠️ Questa persona è già impegnata!*')
-
-        global.marriage_proposals = global.marriage_proposals || {}
-        global.marriage_proposals[target] = { proposer: user, timeout: setTimeout(() => delete global.marriage_proposals[target], 60000) }
-
-        const buttons = [
-            { buttonId: `${usedPrefix}accettasposa`, buttonText: { displayText: 'SÌ, LO VOGLIO ✅' }, type: 1 },
-            { buttonId: `${usedPrefix}rifiutasposa`, buttonText: { displayText: 'NO ❌' }, type: 1 }
-        ]
-
-        return conn.sendMessage(m.chat, {
-            text: `*💍 PROPOSTA DI MATRIMONIO 💍*\n\n@${user.split('@')[0]} ha chiesto la mano di @${target.split('@')[0]}.\n\n*Vuoi accettare?*`,
-            footer: 'SISTEMA GENEALOGICO',
-            buttons: buttons,
-            headerType: 1,
-            mentions: [user, target]
-        }, { quoted: m })
-    }
-
-    if (command === 'accettasposa') {
-        let proposal = global.marriage_proposals[user]
-        if (!proposal) return m.reply('*⚠️ Nessuna proposta pendente.*')
-        
-        let partner = proposal.proposer
-        marriages[user] = partner
-        marriages[partner] = user
-        saveMarriages()
-        clearTimeout(proposal.timeout)
-        delete global.marriage_proposals[user]
-
-        let img = await createMarriageImage(user, partner, conn, true)
-        return conn.sendMessage(m.chat, { image: img, caption: `*💖 VIVA GLI SPOSI!* @${user.split('@')[0]} e @${partner.split('@')[0]} sono ora uniti!`, mentions: [user, partner] })
-    }
-
-    if (command === 'divorzia') {
-        let ex = marriages[user]
-        if (!ex) return m.reply('*⚠️ Non sei sposato.*')
-        
-        delete marriages[user]
-        delete marriages[ex]
-        saveMarriages()
-
-        let img = await createMarriageImage(user, ex, conn, false)
-        return conn.sendMessage(m.chat, { image: img, caption: `*💔 Divorzio completato tra @${user.split('@')[0]} e @${ex.split('@')[0]}*`, mentions: [user, ex] })
-    }
-
-    if (command === 'adotta') {
-        let target = m.mentionedJid[0] || (m.quoted ? m.quoted.sender : null)
-        if (!target || target === user) return m.reply('*⚠️ Tagga chi vuoi adottare!*')
-        checkUser(target)
-        if (global.db.data.users[target].s) return m.reply('*❌ Ha già un genitore!*')
-        
-        global.db.data.users[user].p.push(target)
-        global.db.data.users[target].s = user
-        m.reply(`*👶 Hai adottato @${target.split('@')[0]}!*`, null, { mentions: [target] })
-    }
-
-    if (command === 'disereda') {
-        let target = m.mentionedJid[0] || (m.quoted ? m.quoted.sender : null)
-        if (!target) return m.reply('*⚠️ Tagga il figlio!*')
-        let figli = global.db.data.users[user].p || []
-        if (!figli.includes(target)) return m.reply('*❌ Non è tuo figlio.*')
-        
-        global.db.data.users[user].p = figli.filter(id => id !== target)
-        global.db.data.users[target].s = null
-        m.reply(`*🚫 @${target.split('@')[0]} rimosso dalla famiglia.*`, null, { mentions: [target] })
-    }
+// --- HANDLER ---
+let handler = async (m, { conn, command, usedPrefix }) => {
+    let user = m.sender;
+    checkUser(user);
 
     if (command === 'albero' || command === 'famigliamia') {
-        let target = m.mentionedJid[0] || user
-        checkUser(target)
-        await m.reply('⏳ *Generazione albero in corso...*')
+        let target = m.mentionedJid[0] || user;
+        checkUser(target);
+        await m.reply('⏳ *Sto dipingendo la tua dinastia...*');
 
-        const canvas = createCanvas(800, 800)
-        const ctx = canvas.getContext('2d')
-        ctx.fillStyle = '#121212'; ctx.fillRect(0, 0, 800, 800)
+        const canvas = createCanvas(900, 1000);
+        const ctx = canvas.getContext('2d');
 
-        const drawBox = async (id, x, y, label, color) => {
-            if (!id) return
-            ctx.fillStyle = color; ctx.fillRect(x - 80, y - 50, 160, 100)
-            ctx.strokeStyle = '#f1c40f'; ctx.strokeRect(x - 80, y - 50, 160, 100)
-            ctx.fillStyle = '#000'; ctx.font = 'bold 12px Arial'; ctx.textAlign = 'center'
-            ctx.fillText(label, x, y - 35)
-            let name = await conn.getName(id)
-            ctx.fillText(name.substring(0, 15), x, y + 40)
-            try {
-                let url = await conn.profilePictureUrl(id, 'image').catch(() => 'https://telegra.ph/file/2416c30c33306fa33c5e0.jpg')
-                let img = await loadImage(url)
-                ctx.save(); ctx.beginPath(); ctx.arc(x, y, 25, 0, Math.PI * 2); ctx.clip()
-                ctx.drawImage(img, x - 25, y - 25, 50, 50); ctx.restore()
-            } catch {}
-        }
+        // Background Gradient Elegante
+        const bg = ctx.createLinearGradient(0, 0, 900, 1000);
+        bg.addColorStop(0, '#11111b');
+        bg.addColorStop(1, '#181825');
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, 900, 1000);
 
-        let u = global.db.data.users[target]
-        let partner = marriages[target]
-        let padre = u.s
+        let u = global.db.data.users[target];
+        let partner = marriages[target];
+        let padre = u.s;
+        let figli = u.p || [];
 
+        const centerX = 450;
+        
+        // 1. Disegna Genitore (Sopra)
         if (padre) {
-            ctx.strokeStyle = '#fff'; ctx.beginPath(); ctx.moveTo(400, 150); ctx.lineTo(400, 350); ctx.stroke()
-            await drawBox(padre, 400, 100, 'GENITORE', '#3498db')
+            await drawUserCard(ctx, conn, padre, centerX, 150, 'GENITORE');
+            ctx.strokeStyle = '#45475a';
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath(); ctx.moveTo(centerX, 185); ctx.lineTo(centerX, 265); ctx.stroke();
+            ctx.setLineDash([]);
         }
 
+        // 2. Disegna Tu e Partner (Centro)
         if (partner) {
-            ctx.strokeStyle = '#e74c3c'; ctx.beginPath(); ctx.moveTo(300, 350); ctx.lineTo(500, 350); ctx.stroke()
-            await drawBox(target, 300, 350, 'TU', '#fff'); await drawBox(partner, 500, 350, 'PARTNER', '#ff7675')
+            await drawUserCard(ctx, conn, target, centerX - 120, 300, 'IO');
+            await drawUserCard(ctx, conn, partner, centerX + 120, 300, 'PARTNER');
+            // Linea Unione
+            ctx.strokeStyle = '#f38ba8';
+            ctx.beginPath(); ctx.moveTo(centerX - 30, 300); ctx.lineTo(centerX + 30, 300); ctx.stroke();
         } else {
-            await drawBox(target, 400, 350, 'TU', '#fff')
+            await drawUserCard(ctx, conn, target, centerX, 300, 'IO');
         }
 
-        let figli = u.p || []
+        // 3. Disegna Figli (Sotto)
         if (figli.length > 0) {
-            let startX = 400 - (figli.length - 1) * 100
-            figli.slice(0, 4).forEach(async (f, i) => {
-                let fx = startX + (i * 200)
-                ctx.strokeStyle = '#fff'; ctx.beginPath(); ctx.moveTo(400, 350); ctx.lineTo(fx, 600); ctx.stroke()
-                await drawBox(f, fx, 600, 'FIGLIO', '#2ecc71')
-            })
+            const startY = 450;
+            const spacing = 220;
+            const totalWidth = (figli.length - 1) * spacing;
+            const startX = centerX - (totalWidth / 2);
+
+            // Linea verticale principale verso i figli
+            ctx.strokeStyle = '#45475a';
+            ctx.beginPath(); ctx.moveTo(centerX, 335); ctx.lineTo(centerX, 380); ctx.stroke();
+            
+            // Linea orizzontale di collegamento figli
+            ctx.beginPath(); ctx.moveTo(startX, 380); ctx.lineTo(startX + totalWidth, 380); ctx.stroke();
+
+            for (let i = 0; i < figli.length; i++) {
+                let fX = startX + (i * spacing);
+                ctx.beginPath(); ctx.moveTo(fX, 380); ctx.lineTo(fX, 415); ctx.stroke();
+                await drawUserCard(ctx, conn, figli[i], fX, 450, 'FIGLIO/A');
+            }
         }
 
-        setTimeout(() => {
-            conn.sendMessage(m.chat, { image: canvas.toBuffer(), caption: `🌳 Albero di @${target.split('@')[0]}`, mentions: [target] })
-        }, 1500)
+        let buffer = canvas.toBuffer();
+        return conn.sendMessage(m.chat, { image: buffer, caption: `👑 *Dinastia di ${await conn.getName(target)}*` }, { quoted: m });
     }
-}
+    
+    // ... mantieni qui le altre funzioni (sposa, divorzia, adotta) dal tuo codice precedente ...
+};
 
-handler.command = /^(sposa|accettasposa|rifiutasposa|divorzia|adotta|disereda|albero|famigliamia|famiglia)$/i
-handler.group = true
-export default handler
+handler.command = /^(albero|famigliamia|famiglia|sposa|accettasposa|divorzia|adotta|disereda)$/i;
+export default handler;
