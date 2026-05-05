@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import { createCanvas, loadImage } from 'canvas'
 
-// --- CONFIGURAZIONE DATABASE ---
+// --- DATABASE SETUP ---
 const marriagesFile = path.resolve('media/database/sposi.json');
 if (!fs.existsSync(path.dirname(marriagesFile))) fs.mkdirSync(path.dirname(marriagesFile), { recursive: true });
 
@@ -32,20 +32,16 @@ async function drawUserCard(ctx, conn, id, x, y, role) {
     ctx.roundRect(x - cardW/2, y - cardH/2, cardW, cardH, 15);
     ctx.fill();
     ctx.shadowBlur = 0;
-
     ctx.strokeStyle = role === 'GENITORE' ? '#f5c2e7' : (role === 'PARTNER' ? '#f38ba8' : '#89b4fa');
     ctx.lineWidth = 2;
     ctx.stroke();
 
     try {
-        let url = await conn.profilePictureUrl(id, 'image').catch(() => 'https://telegra.ph');
+        let url = await conn.profilePictureUrl(id, 'image').catch(() => 'https://telegra.ph/file/2416c30c33306fa33c5e0.jpg');
         let img = await loadImage(url);
         ctx.save();
-        ctx.beginPath();
-        ctx.arc(x - 55, y, 25, 0, Math.PI * 2);
-        ctx.clip();
-        ctx.drawImage(img, x - 80, y - 25, 50, 50);
-        ctx.restore();
+        ctx.beginPath(); ctx.arc(x - 55, y, 25, 0, Math.PI * 2); ctx.clip();
+        ctx.drawImage(img, x - 80, y - 25, 50, 50); ctx.restore();
     } catch (e) {}
 
     ctx.fillStyle = '#cdd6f4';
@@ -58,36 +54,11 @@ async function drawUserCard(ctx, conn, id, x, y, role) {
     ctx.fillText(role, x - 20, y + 15);
 }
 
-// --- HANDLER PRINCIPALE ---
+// --- HANDLER ---
 let handler = async (m, { conn, command, usedPrefix }) => {
     let user = m.sender;
     checkUser(user);
 
-    // --- COMANDO RESET (SOLO OWNER) ---
-    if (command === 'resetfamiglia') {
-        let isOwner = [conn.user.jid, ...global.owner.map(v => v + '@s.whatsapp.net')].includes(m.sender)
-        if (!isOwner) return m.reply('*❌ Accesso Negato. Solo il Creatore può usare questo comando.*')
-
-        let target = m.mentionedJid[0] || (m.quoted ? m.quoted.sender : null)
-        if (!target) return m.reply('*⚠️ Tagga o rispondi al messaggio di chi vuoi resettare!*')
-
-        let partner = marriages[target]
-        if (partner) { delete marriages[target]; delete marriages[partner]; }
-        
-        let u = global.db.data.users[target]
-        if (u) {
-            if (u.p) { u.p.forEach(f => { if(global.db.data.users[f]) global.db.data.users[f].s = null }); u.p = []; }
-            if (u.s) { 
-                let g = global.db.data.users[u.s]; 
-                if(g && g.p) g.p = g.p.filter(id => id !== target);
-                u.s = null; 
-            }
-        }
-        saveMarriages();
-        return m.reply(`*🧹 Tabula Rasa: La dinastia di @${target.split('@')[0]} è stata cancellata dal registro reale.*`, null, { mentions: [target] })
-    }
-
-    // --- ALTRI COMANDI (PER TUTTI) ---
     if (command === 'famiglia') {
         let menu = `*🌳 DINASTIA REALE 🌳*\n\n`
         menu += `👉 *${usedPrefix}sposa @tag* - Chiedi la mano\n`
@@ -136,7 +107,6 @@ let handler = async (m, { conn, command, usedPrefix }) => {
             ctx.strokeStyle = '#45475a';
             ctx.beginPath(); ctx.moveTo(centerX, 285); ctx.lineTo(centerX, 330); ctx.stroke();
             ctx.beginPath(); ctx.moveTo(startX, 330); ctx.lineTo(startX + (figli.length - 1) * spacing, 330); ctx.stroke();
-
             for (let i = 0; i < figli.length; i++) {
                 let fX = startX + (i * spacing);
                 ctx.beginPath(); ctx.moveTo(fX, 330); ctx.lineTo(fX, 365); ctx.stroke();
@@ -152,7 +122,7 @@ let handler = async (m, { conn, command, usedPrefix }) => {
         if (marriages[user] || marriages[target]) return m.reply('*⚠️ Uno dei due è già occupato!*')
         global.marriage_proposals = global.marriage_proposals || {}
         global.marriage_proposals[target] = { proposer: user, timeout: setTimeout(() => delete global.marriage_proposals[target], 60000) }
-        m.reply(`*💍 PROPOSTA* @${user.split('@')[0]} ha chiesto la mano di @${target.split('@')[0]}.\nScrivi *${usedPrefix}accettasposa* per accettare!`, null, { mentions: [user, target] })
+        m.reply(`*💍 PROPOSTA* @${user.split('@')[0]} ha chiesto la mano di @${target.split('@')[0]}.\nScrivi *accettasposa* per accettare!`, null, { mentions: [user, target] })
     }
 
     if (command === 'accettasposa') {
@@ -191,5 +161,5 @@ let handler = async (m, { conn, command, usedPrefix }) => {
     }
 }
 
-handler.command = /^(albero|famigliamia|famiglia|sposa|accettasposa|divorzia|adotta|disereda|resetfamiglia)$/i
+handler.command = /^(albero|famigliamia|famiglia|sposa|accettasposa|divorzia|adotta|disereda)$/i
 export default handler
