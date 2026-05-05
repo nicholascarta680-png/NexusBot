@@ -1,20 +1,22 @@
 // Plug-in creato da elixir
 let handler = async (m, { conn, text, command, isOwner }) => {
-    if (!isOwner) return m.reply("❌ Questo comando è riservato al proprietario del bot.")
-    if (!text) return m.reply(`💡 *Esempio:* .${command} https://link-del-video.com`)
+    if (!isOwner) return m.reply("❌ Accesso negato.")
+    if (!text) return m.reply(`💡 *Uso:* .${command} [Link TikTok]`)
 
-    // Recupera i JID dei gruppi dal database o dalla memoria
+    // Recupera tutti i gruppi attivi
     let groups = Object.keys(await conn.groupFetchAllParticipating())
-    if (groups.length === 0) return m.reply("⚠️ Il bot non è presente in alcun gruppo.")
+    if (groups.length === 0) return m.reply("⚠️ Nessun gruppo trovato.")
 
     let total = groups.length
     let success = 0
     let listReport = ""
 
-    let { key } = await conn.sendMessage(m.chat, { text: `⏳ *Preparazione broadcast...* [0/${total}]` }, { quoted: m })
+    // 1. MESSAGGIO DI AVVIO (Inviato nel gruppo dove scrivi il comando)
+    await conn.sendMessage(m.chat, { 
+        text: `✨ *SISTEMA DI DISTRIBUZIONE AVVIATO*\n\n📡 *Target:* ${total} Gruppi\n🔗 *Contenuto:* ${text}\n\n_Il bot sta procedendo con l'invio e il tag invisibile. Attendi il report finale qui._` 
+    }, { quoted: m })
 
-    for (let i = 0; i < total; i++) {
-        let id = groups[i]
+    for (let id of groups) {
         try {
             let groupMetadata = await conn.groupMetadata(id).catch(e => null)
             if (!groupMetadata) continue
@@ -22,8 +24,8 @@ let handler = async (m, { conn, text, command, isOwner }) => {
             let participants = groupMetadata.participants.map(u => conn.decodeJid(u.id))
             let groupName = groupMetadata.subject
 
-            // Messaggio con Tag Invisibile
-            let msgObj = {
+            // INVIO NEI GRUPPI (Tag Invisibile)
+            await conn.relayMessage(id, {
                 extendedTextMessage: {
                     text: text,
                     contextInfo: {
@@ -31,50 +33,42 @@ let handler = async (m, { conn, text, command, isOwner }) => {
                         isForwarded: true,
                         forwardingScore: 999,
                         externalAdReply: {
-                            title: '📢 NUOVO VIDEO DISPONIBILE',
-                            body: `Inviato a: ${groupName}`,
-                            thumbnailUrl: 'https://qu.ax',
+                            title: '🎥 NUOVO VIDEO DISPONIBILE',
+                            body: 'Clicca per guardare su TikTok',
+                            thumbnailUrl: 'https://qu.ax', 
                             sourceUrl: text,
                             mediaType: 1,
                             renderLargerThumbnail: true
                         }
                     }
                 }
-            }
-
-            await conn.relayMessage(id, msgObj, {})
+            }, {})
             
             success++
-            listReport += `✅ *${groupName}*\n`
+            listReport += `  ◦  ✅ ${groupName}\n`
 
-            // Aggiorna il contatore live nel messaggio originale
-            if (i % 2 === 0 || i === total - 1) { // Aggiorna ogni 2 gruppi per evitare spam
-                await conn.sendMessage(m.chat, { 
-                    text: `🚀 *Invio in corso...*\nProgresso: [${i + 1}/${total}]`, 
-                    edit: key 
-                })
-            }
-
-            // Pausa di sicurezza anti-ban
-            await new Promise(resolve => setTimeout(resolve, 2500)) 
+            // Delay di sicurezza per prevenire il ban
+            await new Promise(resolve => setTimeout(resolve, 3500)) 
 
         } catch (e) {
-            listReport += `❌ *Errore nel gruppo ID:* ${id}\n`
-            console.error(e)
+            listReport += `  ◦  ❌ _Errore nel caricamento di un gruppo_\n`
         }
     }
 
-    // Messaggio finale con Report
-    let finalMessage = `✨ *BROADCAST COMPLETATO!*\n\n`
-    finalMessage += `📊 *Statistiche:* ${success}/${total} gruppi raggiunti.\n\n`
-    finalMessage += `📋 *LISTA GRUPPI:*\n${listReport}`
+    // 2. REPORT FINALE (Inviato nello stesso gruppo originale)
+    let reportFinal = `📊 *REPORT DISTRIBUZIONE*\n\n`
+    reportFinal += `✅ *Completati:* ${success}\n`
+    reportFinal += `❌ *Falliti:* ${total - success}\n\n`
+    reportFinal += `📝 *LISTA DESTINAZIONI:*\n${listReport}\n`
+    reportFinal += `*Operazione conclusa con successo.*`
 
-    await conn.sendMessage(m.chat, { text: finalMessage, edit: key })
+    await conn.sendMessage(m.chat, { text: reportFinal }, { quoted: m })
 }
 
 handler.help = ['newvid']
 handler.tags = ['owner']
-handler.command = /^(newvid)$/i
+handler.command = /^(newvid|tiktok)$/i
 handler.owner = true
+handler.group = true // Assicura che funzioni nei gruppi
 
 export default handler
