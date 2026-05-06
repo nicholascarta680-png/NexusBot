@@ -362,11 +362,11 @@ if (m.message?.protocolMessage?.type === 'MESSAGE_EDIT') {
 
         normalizedSender = this.decodeJid(m.sender)
         normalizedBot = this.decodeJid(this.user.jid)
-        if (!normalizedSender) return;
+if (!normalizedSender) return;
 
         user = global.db.data.users[normalizedSender] || (global.db.data.users[normalizedSender] = {
             exp: 0,
-            euro: 10,
+            money: 0,
             muto: false,
             registered: false,
             name: m.pushName || '?',
