@@ -1,26 +1,45 @@
-let handler = async (m, { conn, text }) => {
-  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+// Plug-in creato da elixir
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-  let linkRegex = /chat\.whatsapp\.com\/([0-9A-Za-z]{20,24})/i;
-  let [, code] = text.match(linkRegex) || [];
-  if (!code) throw 'Link non valido!';
+let handler = async (m, { conn, text, usedPrefix, command }) => {
+    let linkRegex = /chat\.whatsapp\.com\/([0-9A-Za-z]{20,24})/i;
+    
+    if (!text) throw `\`⚠️ Inserisci il link del gruppo.\`\n\`Esempio: ${usedPrefix + command} https://whatsapp.com...\``;
 
-  // Messaggio di attesa
-  await m.reply('🤖 *𝓔𝓛𝓘𝓧𝓘𝓡-𝓑𝓞𝓣 STA ENTRRANDO NEL GRUPPO (PROBABILMENTE PER NUKKARE)*');
+    let [ , code] = text.match(linkRegex) || [];
+    if (!code) throw '`❌ Il link fornito non è un invito WhatsApp valido.`';
 
-  // Piccolo delay per effetto realistico
-  await delay(2000);
+    // Messaggio estetico di attesa
+    let waitingMsg = `  ⋆｡˚『 ╭ \`INFILTRAZIONE\` ╯ 』˚｡⋆\n\n`
+    waitingMsg += `  │ 🤖 *Soggetto:* ELIXIR-BOT\n`
+    waitingMsg += `  │ 🎯 *Obiettivo:* Invasione Gruppo\n`
+    waitingMsg += `  │ ⏳ *Stato:* Calcolo coordinate...\n`
+    waitingMsg += `  ╰⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒`
+    
+    await m.reply(waitingMsg);
 
-  try {
-    await conn.groupAcceptInvite(code);
-  } catch (e) {
-    throw 'Il bot è già nel gruppo o il link non è valido.';
-  }
+    // Effetto delay per realismo
+    await delay(3000);
+
+    try {
+        await conn.groupAcceptInvite(code);
+        
+        let successMsg = `  ⋆｡˚『 ╭ \`SUCCESSO\` ╯ 』˚｡⋆\n\n`
+        successMsg += `  │ ✅ *Stato:* Entrato nel gruppo\n`
+        successMsg += `  │ 🛡️ *Protocollo:* Attivo\n`
+        successMsg += `  ╰⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒`
+        
+        await m.reply(successMsg);
+    } catch (e) {
+        throw '`❌ Impossibile accedere: il bot potrebbe essere stato bannato o il link è scaduto.`';
+    }
 };
 
-handler.help = ['join <chat.whatsapp.com>'];
+handler.help = ['join <link>'];
 handler.tags = ['owner'];
-handler.command = ['join'];
+handler.command = /^(join|entra)$/i;
+
+// Accesso esclusivo ai creatori (config.js)
 handler.rowner = true;
 
 export default handler;
