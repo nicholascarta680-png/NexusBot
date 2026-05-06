@@ -8,11 +8,13 @@ let handler = async (m, { conn, command, args, usedPrefix }) => {
     const currency = "🪙"
     const infinite = "∞"
     
-    // Formatta i contanti normalmente, la banca gestisce l'infinito
-    const formatMoney = (num) => num >= 999999999999 ? "Molti" : num.toLocaleString()
-    const formatBank = (num) => (num === Infinity || num >= 999999999999) ? infinite : num.toLocaleString()
+    // Funzione per formattare i numeri o mostrare l'infinito
+    const format = (num) => {
+        if (num === Infinity || isNaN(num) || num >= 999999999999999) return infinite
+        return num.toLocaleString()
+    }
 
-    // Forza l'infinito in banca se presente nei contanti
+    // Se l'utente ha soldi infiniti, li forziamo in Banca e non in Money
     if (user.money === Infinity) {
         user.money = 0
         user.bank = Infinity
@@ -26,8 +28,8 @@ let handler = async (m, { conn, command, args, usedPrefix }) => {
 ╭━━━〔 🏦 *ESTRATTO CONTO* 〕━━━🌀
 ┃
 ┃  👤 *Titolare:* @${m.sender.split('@')[0]}
-┃  💵 *Contanti:* ${formatMoney(user.money)} ${currency}
-┃  🏛️ *In Banca:* ${formatBank(user.bank)} ${currency}
+┃  💵 *Contanti:* ${format(user.money)} ${currency}
+┃  🏛️ *In Banca:* ${format(user.bank)} ${currency}
 ┃
 ╰━━━━━━━━━━━━━━━━━━━━━━━🌀`.trim()
 
@@ -41,27 +43,31 @@ let handler = async (m, { conn, command, args, usedPrefix }) => {
         case 'deposita':
         case 'dep':
             let depAmount = args[0] === 'all' ? user.money : parseInt(args[0])
+            if (user.money === Infinity) depAmount = Infinity // Gestione caso speciale
+
             if (!depAmount || depAmount <= 0) return m.reply(`⚠️ Usa: \`${usedPrefix + command} <cifra>\``)
-            if (user.money < depAmount) return m.reply('🚫 Fondi insufficienti nel portafoglio.')
+            if (user.money < depAmount && user.money !== Infinity) return m.reply('🚫 Fondi insufficienti nel portafoglio.')
             
-            user.money -= depAmount
-            if (user.bank !== Infinity) user.bank += depAmount
+            user.money = user.money === Infinity ? Infinity : user.money - depAmount
+            user.bank = (user.bank === Infinity || user.bank + depAmount >= Infinity) ? Infinity : user.bank + depAmount
             
             const depButtons = [{ buttonId: `${usedPrefix}bal`, buttonText: { displayText: '🏦 Vedi Saldo' }, type: 1 }]
-            await conn.sendMessage(m.chat, { text: `✅ *Deposito Effettuato*\n💰 Hai versato: *${depAmount.toLocaleString()} ${currency}*`, buttons: depButtons }, { quoted: m })
+            await conn.sendMessage(m.chat, { text: `✅ *Deposito Effettuato*\n💰 Hai versato: *${format(depAmount)} ${currency}*`, buttons: depButtons }, { quoted: m })
             break
 
         case 'preleva':
         case 'wd':
-            let wdAmount = args[0] === 'all' ? (user.bank === Infinity ? 999999999 : user.bank) : parseInt(args[0])
+            let wdAmount = args[0] === 'all' ? user.bank : parseInt(args[0])
+            if (user.bank === Infinity) wdAmount = Infinity
+
             if (!wdAmount || wdAmount <= 0) return m.reply(`⚠️ Usa: \`${usedPrefix + command} <cifra>\``)
             if (user.bank < wdAmount && user.bank !== Infinity) return m.reply('🚫 Non hai abbastanza fondi in banca.')
             
-            if (user.bank !== Infinity) user.bank -= wdAmount
-            user.money += wdAmount
+            user.bank = user.bank === Infinity ? Infinity : user.bank - wdAmount
+            user.money = (user.money === Infinity || user.money + wdAmount >= Infinity) ? Infinity : user.money + wdAmount
             
             const wdButtons = [{ buttonId: `${usedPrefix}bal`, buttonText: { displayText: '🏦 Vedi Saldo' }, type: 1 }]
-            await conn.sendMessage(m.chat, { text: `✅ *Prelievo Effettuato*\n💰 Hai prelevato: *${wdAmount.toLocaleString()} ${currency}*`, buttons: wdButtons }, { quoted: m })
+            await conn.sendMessage(m.chat, { text: `✅ *Prelievo Effettuato*\n💰 Hai prelevato: *${format(wdAmount)} ${currency}*`, buttons: wdButtons }, { quoted: m })
             break
 
         case 'bonifico':
@@ -70,16 +76,18 @@ let handler = async (m, { conn, command, args, usedPrefix }) => {
             if (!who) return m.reply('👤 Tagga qualcuno o rispondi al suo messaggio.')
             
             let payAmount = parseInt(args.find(a => !a.includes('@')))
+            if (args.includes('all')) payAmount = user.money
+
             if (!payAmount || payAmount <= 0) return m.reply('💰 Inserisci un importo valido.')
-            if (user.money < payAmount) return m.reply('🚫 Portafoglio insufficiente.')
+            if (user.money < payAmount && user.money !== Infinity) return m.reply('🚫 Portafoglio vuoto.')
 
             let target = global.db.data.users[who]
             if (!target) return m.reply('❌ Utente non registrato.')
 
-            user.money -= payAmount
-            if (target.money !== Infinity) target.money = (target.money || 0) + payAmount
+            user.money = user.money === Infinity ? Infinity : user.money - payAmount
+            target.money = (target.money === Infinity || (target.money || 0) + payAmount >= Infinity) ? Infinity : (target.money || 0) + payAmount
             
-            m.reply(`💸 *Bonifico Confermato*\n📤 *Inviati:* ${payAmount.toLocaleString()} ${currency}\n👤 *A:* @${who.split('@')[0]}`, null, { mentions: [who] })
+            m.reply(`💸 *Bonifico Confermato*\n📤 *Inviati:* ${format(payAmount)} ${currency}\n👤 *A:* @${who.split('@')[0]}`, null, { mentions: [who] })
             break
     }
 }
