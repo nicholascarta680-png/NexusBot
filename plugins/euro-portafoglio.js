@@ -1,79 +1,93 @@
 let handler = async (m, { conn, command, args, usedPrefix }) => {
     let user = global.db.data.users[m.sender]
-    if (!user) return m.reply('❌ *Errore:* Utente non trovato nel database.')
+    if (!user) return m.reply('❌ *Errore:* Utente non trovato.')
 
     if (typeof user.money === 'undefined') user.money = 0
     if (typeof user.bank === 'undefined') user.bank = 0
 
-    // Configurazione grafica comune
-    const decor = "━━━━━━━━━━━━━━━━━━━━"
     const currency = "🪙"
+    const infinite = "∞"
+    
+    // Funzione per formattare i numeri o mostrare l'infinito
+    const format = (num) => {
+        if (num === Infinity || isNaN(num) || num >= 999999999999999) return infinite
+        return num.toLocaleString()
+    }
+
+    // Se l'utente ha soldi infiniti, li forziamo in Banca e non in Money
+    if (user.money === Infinity) {
+        user.money = 0
+        user.bank = Infinity
+    }
 
     switch (command) {
         case 'portafoglio':
         case 'wallet':
         case 'bal':
-            let total = user.money + user.bank
             let status = `
 ╭━━━〔 🏦 *ESTRATTO CONTO* 〕━━━🌀
 ┃
 ┃  👤 *Titolare:* @${m.sender.split('@')[0]}
-┃  💵 *Contanti:* ${user.money.toLocaleString()} ${currency}
-┃  🏛️ *In Banca:* ${user.bank.toLocaleString()} ${currency}
-┃  
-┃  ✨ *Bilancio Totale:* ${total.toLocaleString()} ${currency}
+┃  💵 *Contanti:* ${format(user.money)} ${currency}
+┃  🏛️ *In Banca:* ${format(user.bank)} ${currency}
 ┃
 ╰━━━━━━━━━━━━━━━━━━━━━━━🌀`.trim()
 
-            // Esempio struttura bottoni (ButtonId)
-            const buttons = [
+            const balButtons = [
                 { buttonId: `${usedPrefix}dep all`, buttonText: { displayText: '📥 Deposita Tutto' }, type: 1 },
                 { buttonId: `${usedPrefix}wd all`, buttonText: { displayText: '📤 Preleva Tutto' }, type: 1 }
             ]
-            
-            await conn.sendMessage(m.chat, { text: status, mentions: [m.sender], buttons: buttons }, { quoted: m })
+            await conn.sendMessage(m.chat, { text: status, mentions: [m.sender], buttons: balButtons }, { quoted: m })
             break
 
         case 'deposita':
         case 'dep':
             let depAmount = args[0] === 'all' ? user.money : parseInt(args[0])
-            if (!depAmount || depAmount <= 0) return m.reply(`⚠️ *Info:* Specifica una cifra o usa\n👉 \`${usedPrefix + command} all\``)
-            if (user.money < depAmount) return m.reply('🚫 *Operazione Negata:* Fondi insufficienti nel portafoglio.')
+            if (user.money === Infinity) depAmount = Infinity // Gestione caso speciale
+
+            if (!depAmount || depAmount <= 0) return m.reply(`⚠️ Usa: \`${usedPrefix + command} <cifra>\``)
+            if (user.money < depAmount && user.money !== Infinity) return m.reply('🚫 Fondi insufficienti nel portafoglio.')
             
-            user.money -= depAmount
-            user.bank += depAmount
+            user.money = user.money === Infinity ? Infinity : user.money - depAmount
+            user.bank = (user.bank === Infinity || user.bank + depAmount >= Infinity) ? Infinity : user.bank + depAmount
             
-            m.reply(`✅ *Deposito Effettuato*\n${decor}\n💰 Hai versato: *${depAmount} ${currency}*\n🏦 Nuovo saldo banca: *${user.bank} ${currency}*`)
+            const depButtons = [{ buttonId: `${usedPrefix}bal`, buttonText: { displayText: '🏦 Vedi Saldo' }, type: 1 }]
+            await conn.sendMessage(m.chat, { text: `✅ *Deposito Effettuato*\n💰 Hai versato: *${format(depAmount)} ${currency}*`, buttons: depButtons }, { quoted: m })
             break
 
         case 'preleva':
         case 'wd':
             let wdAmount = args[0] === 'all' ? user.bank : parseInt(args[0])
-            if (!wdAmount || wdAmount <= 0) return m.reply(`⚠️ *Info:* Specifica una cifra o usa\n👉 \`${usedPrefix + command} all\``)
-            if (user.bank < wdAmount) return m.reply('🚫 *Operazione Negata:* Non hai abbastanza fondi in banca.')
+            if (user.bank === Infinity) wdAmount = Infinity
+
+            if (!wdAmount || wdAmount <= 0) return m.reply(`⚠️ Usa: \`${usedPrefix + command} <cifra>\``)
+            if (user.bank < wdAmount && user.bank !== Infinity) return m.reply('🚫 Non hai abbastanza fondi in banca.')
             
-            user.bank -= wdAmount
-            user.money += wdAmount
+            user.bank = user.bank === Infinity ? Infinity : user.bank - wdAmount
+            user.money = (user.money === Infinity || user.money + wdAmount >= Infinity) ? Infinity : user.money + wdAmount
             
-            m.reply(`✅ *Prelievo Effettuato*\n${decor}\n💰 Hai prelevato: *${wdAmount} ${currency}*\n💵 Contanti attuali: *${user.money} ${currency}*`)
+            const wdButtons = [{ buttonId: `${usedPrefix}bal`, buttonText: { displayText: '🏦 Vedi Saldo' }, type: 1 }]
+            await conn.sendMessage(m.chat, { text: `✅ *Prelievo Effettuato*\n💰 Hai prelevato: *${format(wdAmount)} ${currency}*`, buttons: wdButtons }, { quoted: m })
             break
 
         case 'bonifico':
         case 'pay':
             let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : null
-            if (!who) return m.reply('👤 *A chi vuoi inviare soldi?*\nTagga un utente o rispondi a un suo messaggio.')
+            if (!who) return m.reply('👤 Tagga qualcuno o rispondi al suo messaggio.')
             
             let payAmount = parseInt(args.find(a => !a.includes('@')))
-            if (!payAmount || payAmount <= 0) return m.reply('💰 *Errore:* Inserisci un importo valido per il bonifico.')
-            if (user.money < payAmount) return m.reply('🚫 *Operazione Fallita:* Portafoglio vuoto.')
+            if (args.includes('all')) payAmount = user.money
+
+            if (!payAmount || payAmount <= 0) return m.reply('💰 Inserisci un importo valido.')
+            if (user.money < payAmount && user.money !== Infinity) return m.reply('🚫 Portafoglio vuoto.')
 
             let target = global.db.data.users[who]
-            if (!target) return m.reply('❌ *Errore:* Il destinatario non esiste nel database.')
+            if (!target) return m.reply('❌ Utente non registrato.')
 
-            user.money -= payAmount
-            target.money = (target.money || 0) + payAmount
+            user.money = user.money === Infinity ? Infinity : user.money - payAmount
+            target.money = (target.money === Infinity || (target.money || 0) + payAmount >= Infinity) ? Infinity : (target.money || 0) + payAmount
             
-            m.reply(`💸 *Bonifico Confermato*\n${decor}\n📤 *Inviati:* ${payAmount} ${currency}\n👤 *A:* @${who.split('@')[0]}`, null, { mentions: [who] })
+            m.reply(`💸 *Bonifico Confermato*\n📤 *Inviati:* ${format(payAmount)} ${currency}\n👤 *A:* @${who.split('@')[0]}`, null, { mentions: [who] })
             break
     }
 }
