@@ -23,72 +23,62 @@ let handler = async (m, { conn, text }) => {
 
     const username = menzione.split('@')[0]
 
-    // ====================== SEQUENZA ANIMATA ======================
-    let msg = await conn.sendMessage(m.chat, {
+    // ====================== 4 SEQUENZE (più corte) ======================
+    const seq1 = [  // Brutale
+        `@${username} viene sbattuto contro il muro...`,
+        `Gli abbasso i pantaloni e lo penetro con forza...`,
+        `Lo sto sfondando senza pietà...`,
+        `Il culo è distrutto e riempito 💦`
+    ]
+
+    const seq2 = [  // Lento e Umiliante
+        `@${username} è in ginocchio...`,
+        `Ti sto allargando il culo piano piano...`,
+        `Senti come ti apro tutto?`,
+        `Bravo, sei solo un buco da usare 🍑`
+    ]
+
+    const seq3 = [  // Diretto
+        `@${username} viene inculato con violenza...`,
+        `Lo sto rompendo fino in fondo...`,
+        `Il buco si sta dilatando sempre di più...`,
+        `Completamente riempito e distrutto.`
+    ]
+
+    const seq4 = [  // Intenso
+        `@${username} sente il cazzo entrare...`,
+        `Viene sbattuto con colpi profondi...`,
+        `Sta prendendo tutto come una troia...`,
+        `Culo distrutto e pieno 💦`
+    ]
+
+    const sequences = [seq1, seq2, seq3, seq4]
+    const chosen = sequences[Math.floor(Math.random() * sequences.length)]
+
+    // Messaggio iniziale
+    let currentMsg = await conn.sendMessage(m.chat, {
         text: `╔════════════════════╗\n` +
-              `   🔥 INCULA MODE ACTIVATED 🔥\n` +
+              `     🔥 INCULA MODE 🔥\n` +
               `╚════════════════════╝\n\n` +
-              `@${username} è stato scelto...`,
+              `@${username} è stato selezionato...`,
         mentions: [menzione]
     }, { quoted: m })
 
-    const sequence = [
-        `╔════════════════════╗\n` +
-        `   🔥 INCULA MODE ACTIVATED 🔥\n` +
-        `╚════════════════════╝\n\n` +
-        `@${username} viene spinto contro il muro...\n` +
-        `I pantaloni scendono lentamente.`,
-
-        `╔════════════════════╗\n` +
-        `   🔥 INCULA MODE ACTIVATED 🔥\n` +
-        `╚════════════════════╝\n\n` +
-        `@${username} sente la punta premere...\n` +
-        `Sto allargando il culo piano...`,
-
-        `╔════════════════════╗\n` +
-        `   🔥 INCULA MODE ACTIVATED 🔥\n` +
-        `╚════════════════════╝\n\n` +
-        `@${username} geme mentre entra tutto...\n` +
-        `Lo sto sfondando fino in fondo.`,
-
-        `╔════════════════════╗\n` +
-        `   🔥 INCULA MODE ACTIVATED 🔥\n` +
-        `╚════════════════════╝\n\n` +
-        `@${username} trema mentre lo riempio...\n` +
-        `Il culo si sta dilatando perfettamente.`,
-
-        `╔════════════════════╗\n` +
-        `   🔥 INCULA MODE ACTIVATED 🔥\n` +
-        `╚════════════════════╝\n\n` +
-        `@${username} viene sbattuto con forza...\n` +
-        `Lo sto rompendo come si deve.`,
-
-        `╔════════════════════╗\n` +
-        `   🔥 INCULA MODE ACTIVATED 🔥\n` +
-        `╚════════════════════╝\n\n` +
-        `@${username} ha il culo completamente distrutto...\n` +
-        `Sto venendo dentro.`,
-
-        `╔════════════════════╗\n` +
-        `   🔥 INCULA COMPLETATO 🔥\n` +
-        `╚════════════════════╝\n\n` +
-        `@${username} è stato inculato a dovere.\n` +
-        `Il buco ora è bello largo 💦`
-    ]
-
-    // Animazione (modifica dello stesso messaggio)
-    for (let i = 0; i < sequence.length; i++) {
-        await new Promise(resolve => setTimeout(resolve, 1600))
-        await conn.sendMessage(m.chat, { text: sequence[i] }, { edit: msg.key })
+    // Animazione con solo 4 edit (molto più sicura)
+    for (let text of chosen) {
+        await new Promise(r => setTimeout(r, 1800)) // 1.8 secondi tra un edit e l'altro
+        await conn.sendMessage(m.chat, { 
+            text: `╔════════════════════╗\n` +
+                  `     🔥 INCULA MODE 🔥\n` +
+                  `╚════════════════════╝\n\n${text}` 
+        }, { edit: currentMsg.key })
     }
 
     // Reazione finale
-    await conn.sendMessage(m.chat, {
-        react: { text: "🍑", key: m.key }
-    })
+    await conn.sendMessage(m.chat, { react: { text: "🍑", key: m.key } })
 }
 
-handler.command = /^(incula|incul|sfonda|sfon|culo|inculami)$/i
+handler.command = /^(incula|incul|sfonda|sfon|inculami|sfondaculo)$/i
 handler.tags = ['fun', 'nsfw']
 handler.group = true
 
