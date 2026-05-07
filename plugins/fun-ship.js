@@ -1,38 +1,24 @@
 // Plug-in creato da elixir
-let handler = async (m, { conn, participants }) => {
-  let member = participants.map(u => u.id)
-  let a = member[Math.floor(Math.random() * member.length)]
-  let b = member[Math.floor(Math.random() * member.length)]
-  
-  // Evitiamo che il bot scelga la stessa persona
-  while (b === a) b = member[Math.floor(Math.random() * member.length)]
-  
-  let love = Math.floor(Math.random() * 100)
-  
-  let caption = `✨ *ELIXIR MATCHMAKER* ✨\n\n`
-  caption += `💞 @${a.split('@')[0]} + @${b.split('@')[0]}\n`
-  caption += `💓 *Compatibilità:* ${love}%\n\n`
-  caption += love > 70 ? "🔥 Una coppia esplosiva!" : "🧊 Forse è meglio restare amici..."
+let handler = async (m, { conn, text }) => {
+    let mentioned = m.mentionedJid
+    if (mentioned.length < 2) return m.reply('Devi menzionare due persone! Es: .ship @user1 @user2')
 
-  // FIX: Le menzioni vanno dentro contextInfo per essere cliccabili
-  await conn.sendMessage(m.chat, { 
-    text: caption, 
-    contextInfo: {
-      mentionedJid: [a, b],
-      externalAdReply: {
-        title: `💞 LOVE TEST 💞`,
-        body: `Compatibilità: ${love}%`,
-        thumbnailUrl: 'https://ibb.co', // Puoi cambiare questa immagine
-        mediaType: 1,
-        renderLargerThumbnail: false
-      }
-    }
-  }, { quoted: m })
+    let user1 = mentioned[0].split('@')[0]
+    let user2 = mentioned[1].split('@')[0]
+    
+    let percentuale = Math.floor(Math.random() * 100) + 1
+    let commento = percentuale > 80 ? "❤️ Coppia perfetta!" :
+                   percentuale > 60 ? "Bella coppia!" :
+                   percentuale > 40 ? "Ci può stare" : "Meglio amici 😂"
+
+    await conn.reply(m.chat, `╔══ *SHIP METER* ══╗\n\n` +
+                           `${user1} ❤️ ${user2}\n` +
+                           `Compatibilità: ${percentuale}%\n\n` +
+                           `${commento}\n` +
+                           `╚════════════════╝`, m, { mentions: mentioned })
 }
 
-handler.help = ['ship']
+handler.command = /^ship$/i
 handler.tags = ['fun']
-handler.command = /^(ship|coppia)$/i
 handler.group = true
-
 export default handler
