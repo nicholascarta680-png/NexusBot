@@ -23,36 +23,60 @@ let handler = async (m, { conn, text }) => {
 
     const username = menzione.split('@')[0]
 
-    // ====================== 4 SEQUENZE (più corte) ======================
-    const seq1 = [  // Brutale
-        `@${username} viene sbattuto contro il muro...`,
-        `Gli abbasso i pantaloni e lo penetro con forza...`,
-        `Lo sto sfondando senza pietà...`,
-        `Il culo è distrutto e riempito 💦`
+    // ====================== SEQUENZE CREATIVE ======================
+
+    const sequences = [
+
+        // 1. Brutale e Diretto
+        [`@${username} viene sbattuto contro il muro con violenza...`,
+         `Gli strappo i pantaloni e lo penetro di colpo...`,
+         `Lo sto sfondando senza pietà, sempre più forte...`,
+         `Culo distrutto e riempito fino in fondo 💦`],
+
+        // 2. Lento e Umiliante
+        [`@${username} è in ginocchio come una brava troia...`,
+         `Ti sto allargando il culo con calma...`,
+         `Senti come ti apro tutto? Sei solo un buco...`,
+         `Bravo, prendi tutto fino alla fine 🍑`],
+
+        // 3. Passionale / Intenso
+        [`@${username} viene spinto sul letto...`,
+         `Le mani stringono i fianchi mentre entro lentamente...`,
+         `Lo sto inculando con colpi profondi e ritmati...`,
+         `Viene riempito completamente mentre geme...`],
+
+        // 4. Creative - "Medico"
+        [`@${username} viene messo sul lettino...`,
+         `Il dottore sta allargando il buco con attenzione...`,
+         `Ora entra lo strumento grosso...`,
+         `Diagnosi: culo completamente sfondato 💉`],
+
+        // 5. Creative - "Demoniaco"
+        [`@${username} viene posseduto...`,
+         `Sento il demone che ti allarga il culo...`,
+         `Viene sbattuto da forze sovrannaturali...`,
+         `Riempito dal seme infernale 🔥`],
+
+        // 6. Creative - "Macchina"
+        [`@${username} viene legato alla macchina...`,
+         `La macchina inizia a inculare a velocità crescente...`,
+         `Non si ferma... sempre più forte e profondo...`,
+         `Culo distrutto dalla macchina automatica 🤖`],
+
+        // 7. Creative - "Gangbang Mentale"
+        [`@${username} è circondato...`,
+         `Uno dopo l'altro ti stanno allargando il culo...`,
+         `Stai prendendo da tutti i lati...`,
+         `Completamente usato e ricoperto 💦`],
+
+        // 8. Creative - "Alien"
+        [`@${username} viene catturato dagli alieni...`,
+         `Il tentacolo grosso sta entrando...`,
+         `Ti stanno sondando e dilatando profondamente...`,
+         `Riempito dal fluido alieno 👽`]
     ]
 
-    const seq2 = [  // Lento e Umiliante
-        `@${username} è in ginocchio...`,
-        `Ti sto allargando il culo piano piano...`,
-        `Senti come ti apro tutto?`,
-        `Bravo, sei solo un buco da usare 🍑`
-    ]
-
-    const seq3 = [  // Diretto
-        `@${username} viene inculato con violenza...`,
-        `Lo sto rompendo fino in fondo...`,
-        `Il buco si sta dilatando sempre di più...`,
-        `Completamente riempito e distrutto.`
-    ]
-
-    const seq4 = [  // Intenso
-        `@${username} sente il cazzo entrare...`,
-        `Viene sbattuto con colpi profondi...`,
-        `Sta prendendo tutto come una troia...`,
-        `Culo distrutto e pieno 💦`
-    ]
-
-    const sequences = [seq1, seq2, seq3, seq4]
+    // Scelta casuale della sequenza
     const chosen = sequences[Math.floor(Math.random() * sequences.length)]
 
     // Messaggio iniziale
@@ -64,21 +88,23 @@ let handler = async (m, { conn, text }) => {
         mentions: [menzione]
     }, { quoted: m })
 
-    // Animazione con solo 4 edit (molto più sicura)
-    for (let text of chosen) {
-        await new Promise(r => setTimeout(r, 1800)) // 1.8 secondi tra un edit e l'altro
-        await conn.sendMessage(m.chat, { 
+    // Animazione sicura (modifica stesso messaggio)
+    for (let line of chosen) {
+        await new Promise(r => setTimeout(r, 1700))
+        await conn.sendMessage(m.chat, {
             text: `╔════════════════════╗\n` +
                   `     🔥 INCULA MODE 🔥\n` +
-                  `╚════════════════════╝\n\n${text}` 
+                  `╚════════════════════╝\n\n${line}`
         }, { edit: currentMsg.key })
     }
 
     // Reazione finale
-    await conn.sendMessage(m.chat, { react: { text: "🍑", key: m.key } })
+    await conn.sendMessage(m.chat, {
+        react: { text: "🍑", key: m.key }
+    })
 }
 
-handler.command = /^(incula|incul|sfonda|sfon|inculami|sfondaculo)$/i
+handler.command = /^(incula|incul|sfonda|sfon|inculami|sfondaculo|inculo)$/i
 handler.tags = ['fun', 'nsfw']
 handler.group = true
 
