@@ -1,11 +1,23 @@
 // Plug-in creato da elixir
 let handler = async (m, { conn, command, args, usedPrefix }) => {
     let user = global.db.data.users[m.sender]
-    
-    // Inizializzazione dati esperienza se non esistono
     if (typeof user.workExp === 'undefined') user.workExp = 0
 
-    // Lista completa dei lavori
+    // Controllo se l'utente è un Padrino
+    if (!global.db.data.gangs) global.db.data.gangs = {}
+    let isPadrino = Object.values(global.db.data.gangs).some(g => g.don === m.sender)
+
+    // Comando per licenziarsi
+    if (command === 'licenziati' || (args[0] === 'stop')) {
+        if (!user.job) return m.reply("❌ Non hai un lavoro da cui licenziarti.")
+        if (isPadrino) return m.reply("🌹 Un Padrino non si licenzia, comanda e basta.")
+        
+        user.job = null
+        user.salary = 0
+        user.workExp = 0
+        return m.reply("✅ Ti sei licenziato. Ora sei ufficialmente disoccupato.")
+    }
+
     const lavori = {
         'chef': { nome: 'Chef Stellato', paga: 3000 },
         'pilota': { nome: 'Pilota di Linea', paga: 5000 },
@@ -21,52 +33,30 @@ let handler = async (m, { conn, command, args, usedPrefix }) => {
         'youtuber': { nome: 'Content Creator', paga: 2500 },
         'agricoltore': { nome: 'Imprenditore Agricolo', paga: 2200 },
         'architetto': { nome: 'Architetto', paga: 3500 },
-        'ladro': { nome: 'Ladro Professionista', paga: 1200 } // Aggiunto per future rapine
+        'ladro': { nome: 'Ladro Professionista', paga: 1200 }
     }
 
-    // Se l'utente scrive solo .job o .jobs senza specificare quale
     if (!args[0]) {
+        if (isPadrino) return m.reply("👑 Il tuo ruolo è: *PADRINO*\nNon hai bisogno di un lavoro normale, riscuoti il `.pizzu`!")
         if (!user.job) {
-            let list = `🚫 *NON HAI ANCORA UN LAVORO!*\n\n`
-            list += `Scegline uno scrivendo: \`${usedPrefix + command} <nome-lavoro>\`\n\n`
-            list += `💼 *LISTA CARRIERE:*\n`
-            Object.keys(lavori).forEach(k => {
-                list += `- ${k} (Paga: ${lavori[k].paga} 🪙)\n`
-            })
-            return m.reply(list)
-        } else {
-            let lvl = Math.floor(user.workExp / 10)
-            let progresso = user.workExp % 10
-            return m.reply(`💼 *PROFILO LAVORATIVO*\n\n` +
-                           `👤 *Ruolo:* ${user.job.toUpperCase()}\n` +
-                           `💰 *Stipendio Base:* ${user.salary.toLocaleString()} 🪙\n` +
-                           `📈 *Livello:* ${lvl}\n` +
-                           `✨ *Esperienza:* ${user.workExp} [${progresso}/10 per il prossimo liv.]\n\n` +
-                           `Usa \`.work\` per guadagnare e salire di livello!`)
+            let list = `💼 *LAVORI DISPONIBILI:*\n`
+            Object.keys(lavori).forEach(k => list += `- ${k} (${lavori[k].paga} 🪙)\n`)
+            return m.reply(list + `\n✍️ Scegli con: \`${usedPrefix + command} <nome>\``)
         }
+        return m.reply(`💼 *LAVORO ATTUALE:* ${user.job.toUpperCase()}\n📈 Livello: ${Math.floor(user.workExp / 10)}\n\nUsa \`${usedPrefix}licenziati\` per smettere.`)
     }
 
-    // Se l'utente prova a cambiare o scegliere un lavoro
+    if (isPadrino) return m.reply("🚫 Onorevole Padrino, non può abbassarsi a fare un lavoro comune.")
+    
     let scelta = args[0].toLowerCase()
+    if (!lavori[scelta]) return m.reply(`❌ Lavoro non trovato.`)
 
-    if (!lavori[scelta]) {
-        return m.reply(`❌ Questo lavoro non esiste. Scrivi \`${usedPrefix + command}\` per vedere la lista.`)
-    }
-
-    // Se ha già un lavoro, avvisalo che perderà l'esperienza (opzionale, puoi toglierlo)
-    if (user.job && user.job !== lavori[scelta].nome) {
-        user.workExp = 0 // Reset esperienza se cambia carriera
-    }
-
-    // Assegnazione del lavoro nel Database
     user.job = lavori[scelta].nome
-    user.salary = lavori[scelta].paga 
+    user.salary = lavori[scelta].paga
+    user.workExp = 0 
 
-    return m.reply(`✅ *CONTRATTO FIRMATO*\n\nDa oggi sei un: *${lavori[scelta].nome}*\n💰 Paga concordata: ${lavori[scelta].paga.toLocaleString()} 🪙\n\nBuon lavoro!`)
+    return m.reply(`✅ Contratto firmato come: *${lavori[scelta].nome}*!`)
 }
 
-handler.help = ['job']
-handler.tags = ['economy']
-handler.command = /^(job|jobs)$/i
-
+handler.command = /^(job|jobs|licenziati)$/i
 export default handler
