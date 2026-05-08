@@ -1,19 +1,27 @@
-let handler = async (m, { conn, text }) => {
+let handler = async (m, { conn, text, usedPrefix, command }) => {
   try {
     let who;
 
-    if (text && /^\d{7,15}$/.test(text)) {
-      who = text.replace(/\D/g, '') + '@s.whatsapp.net';
+    // 1. Logica di identificazione migliorata (Numero, Tag, Reply o Se stessi)
+    if (text) {
+      // Rimuove spazi, trattini e il simbolo + per pulire il numero
+      let number = text.replace(/[@\s+-]/g, '');
+      if (!isNaN(number) && number.length >= 7 && number.length <= 15) {
+        who = number + '@s.whatsapp.net';
+      } else if (m.mentionedJid && m.mentionedJid[0]) {
+        who = m.mentionedJid[0];
+      }
     } else if (m.quoted) {
       who = m.quoted.sender;
-    } else if (m.mentionedJid && m.mentionedJid.length > 0) {
-      who = m.mentionedJid[0];
     } else {
-      who = m.fromMe ? conn.user.jid : m.sender;
+      who = m.sender;
     }
 
+    // Informazioni utente
     let name = await conn.getName(who);
+    let userNumber = who.split('@')[0];
 
+    // Tentativo di recupero immagine profilo
     let pp;
     try {
       pp = await conn.profilePictureUrl(who, 'image');
@@ -21,22 +29,45 @@ let handler = async (m, { conn, text }) => {
       pp = null;
     }
 
+    // Messaggio di attesa (opzionale, dà un tocco professionale)
+    // await m.react('⏳');
+
     if (!pp) {
-      await conn.reply(m.chat, `『 🚫 』 *${name} non ha una foto profilo.*`, m, fake);
-      return;
+      let noPic = `
+┏━━━━━━━ ● ● ━━━━━━━┓
+┃   ⚠️  *AVVISO PROFILO*
+┃
+┃ 👤 *Utente:* ${name}
+┃ 📱 *Numero:* ${userNumber}
+┃ ❌ *Errore:* Nessuna foto trovata
+┗━━━━━━━━━━━━━━━━━━━━┛`;
+      return conn.reply(m.chat, noPic, m);
     }
 
-    await conn.sendFile(m.chat, pp, 'profile.jpg', `『 🖼️ 』 *Foto profilo di ${name}*`, m);
+    // Grafica elegante per la didascalia
+    let caption = `
+╔════════════════════╗
+      ✨ *PROFILE PICTURE* ✨
+╚════════════════════╝
+
+  👤  *Nome:* ${name}
+  📱  *ID:* @${userNumber}
+  🔗  *Link:* wa.me/${userNumber}
+
+      _Scaricata con successo!_
+`.trim();
+
+    await conn.sendFile(m.chat, pp, 'profile.jpg', caption, m, null, { mentions: [who] });
+    // await m.react('✅');
 
   } catch (err) {
     console.error('Errore nel comando .pfp:', err);
-    await conn.reply(m.chat, `${global.errore}`, m);
+    await conn.reply(m.chat, `❌ *Si è verificato un errore inaspettato.*`, m);
   }
 };
 
-handler.help = ['pfp [@tag|reply|numero]'];
-handler.tags = ['gruppo'];
-handler.command = ['pfp', 'fotoprofilo', 'pic'];
-handler.admin = true;
+handler.help = ['pfp', 'pic <@tag/numero/reply>'];
+handler.tags = ['tools'];
+handler.command = ['pfp', 'fotoprofilo', 'pic', 'getpp'];
 
 export default handler;
