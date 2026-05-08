@@ -1,70 +1,89 @@
 // Plug-in creato da elixir
 let handler = async (m, { conn, command, args, usedPrefix }) => {
     let user = global.db.data.users[m.sender]
-    
-    // Inizializzazione dati se non esistono
-    if (!user.inventory) user.inventory = []
     if (!user.properties) user.properties = []
     if (!user.vehicles) user.vehicles = []
 
     const items = {
         case: {
-            appartamento: { name: 'Appartamento', price: 50000, rent: 500 },
-            villa: { name: 'Villa con Piscina', price: 200000, rent: 2500 },
-            attico: { name: 'Attico Centro', price: 120000, rent: 1500 }
+            monolocale: { name: 'Monolocale City', price: 30000, rent: 300, tax: 50 },
+            bilocale: { name: 'Bilocale Moderno', price: 65000, rent: 700, tax: 120 },
+            attico: { name: 'Attico Panoramico', price: 150000, rent: 1800, tax: 350 },
+            chalet: { name: 'Chalet in Montagna', price: 250000, rent: 2500, tax: 500 },
+            rustico: { name: 'Rustico in Campagna', price: 110000, rent: 1200, tax: 200 }
+        },
+        ville: {
+            schiera: { name: 'Villa a Schiera', price: 450000, rent: 5000, tax: 1000 },
+            piscina: { name: 'Villa con Piscina', price: 850000, rent: 9500, tax: 2000 },
+            mediterranea: { name: 'Villa Mediterranea', price: 1500000, rent: 18000, tax: 4000 },
+            mansion: { name: 'Mansion Hollywood', price: 5000000, rent: 60000, tax: 12000 },
+            moderna: { name: 'Villa Ultra-Moderna', price: 12000000, rent: 150000, tax: 35000 },
+            castello: { name: 'Castello Reale', price: 50000000, rent: 600000, tax: 100000 }
         },
         veicoli: {
-            auto: { name: 'Utilitaria', price: 15000 },
-            sportiva: { name: 'Ferrari SF90', price: 300000 },
-            elicottero: { name: 'Elicottero Privato', price: 1000000 },
-            aereo: { name: 'Jet Privato', price: 5000000 }
+            utilitaria: { name: 'Fiat 500', price: 15000, maintenance: 150 },
+            berlina: { name: 'Tesla Model 3', price: 55000, maintenance: 300 },
+            suv: { name: 'Lamborghini Urus', price: 220000, maintenance: 1500 },
+            sportiva: { name: 'Ferrari SF90', price: 450000, maintenance: 3000 },
+            hypercar: { name: 'Bugatti Chiron', price: 3000000, maintenance: 25000 },
+            elicottero: { name: 'Elicottero Robinson', price: 1200000, maintenance: 10000 },
+            jet: { name: 'Private Jet Luxury', price: 25000000, maintenance: 150000 },
+            yacht: { name: 'Yacht 40 Metri', price: 15000000, maintenance: 80000 }
         },
         business: {
-            negozio: { name: 'Market Locale', price: 80000, income: 1000 },
-            ristorante: { name: 'Ristorante Stellato', price: 250000, income: 4000 }
+            chiosco: { name: 'Chiosco Spiaggia', price: 25000, income: 800, tax: 100 },
+            bar: { name: 'Caffetteria Centro', price: 80000, income: 2500, tax: 500 },
+            palestra: { name: 'Gold Gym', price: 200000, income: 7000, tax: 1500 },
+            concessionaria: { name: 'Auto Luxury Dealer', price: 1500000, income: 45000, tax: 8000 },
+            centro: { name: 'Centro Commerciale', price: 10000000, income: 350000, tax: 60000 },
+            banca: { name: 'Banca Privata', price: 100000000, income: 4000000, tax: 500000 }
         }
     }
 
-    if (!args[0]) {
-        return m.reply(`🛒 *NEGOZIO DISPONIBILE*\n\nUsa: \`${usedPrefix + command} <categoria>\`
-        
-📂 *Categorie:*
-- \`case\`
-- \`veicoli\`
-- \`business\``)
-    }
-
-    let category = args[0].toLowerCase()
+    let category = args[0]?.toLowerCase()
     let itemKey = args[1]?.toLowerCase()
 
-    if (!items[category]) return m.reply('❌ Categoria non valida.')
+    if (!items[category]) {
+        return m.reply(`🛒 *CENTRO COMMERCIALE ELIXIR*\n\nScegli una categoria: \`${usedPrefix + command} <categoria>\`
+        
+🏘️ *Immobili:* \`case\` o \`ville\`
+🏎️ *Trasporti:* \`veicoli\`
+💼 *Economia:* \`business\``)
+    }
 
-    // Se l'utente visualizza la categoria
     if (!itemKey) {
-        let list = `🛒 *LISTINO ${category.toUpperCase()}*\n\n`
+        let list = `📂 *LISTINO ${category.toUpperCase()}*\n`
+        list += `━━━━━━━━━━━━━━━━━━━━\n\n`
         for (let key in items[category]) {
-            list += `• *${items[category][key].name}* (${key})\n`
-            list += `  💰 Prezzo: ${items[category][key].price.toLocaleString()} 🪙\n\n`
+            let itm = items[category][key]
+            list += `• *${itm.name}* (\`${key}\`)\n`
+            list += `  💰 Prezzo: ${itm.price.toLocaleString()} 🪙\n`
+            if (itm.rent) list += `  🏠 Affitto: +${itm.rent.toLocaleString()} 🪙\n`
+            if (itm.income) list += `  📈 Rendita: +${itm.income.toLocaleString()} 🪙\n`
+            list += `\n`
         }
-        list += `✍️ Scrivi \`${usedPrefix + command} ${category} <nome>\` per comprare.`
+        list += `✍️ Compra con: \`${usedPrefix + command} ${category} <nome-oggetto>\``
         return m.reply(list)
     }
 
-    // Logica di acquisto
     let item = items[category][itemKey]
-    if (!item) return m.reply('❌ Oggetto non trovato.')
-    if (user.money < item.price) return m.reply('🚫 Non hai abbastanza contanti!')
+    if (!item) return m.reply('❌ Questo oggetto non esiste in questa categoria.')
+    if (user.money < item.price) return m.reply(`🚫 Non hai abbastanza soldi! Ti mancano ${(item.price - user.money).toLocaleString()} 🪙`)
 
     user.money -= item.price
     
-    if (category === 'case') user.properties.push({ ...item, lastClaim: Date.now() })
-    else if (category === 'veicoli') user.vehicles.push(item)
-    else if (category === 'business') user.properties.push({ ...item, type: 'business', lastClaim: Date.now() })
+    // Salvataggio nel database
+    if (category === 'case' || category === 'ville' || category === 'business') {
+        user.properties.push({ ...item, category, lastClaim: Date.now() })
+    } else {
+        user.vehicles.push({ ...item, category, boughtAt: Date.now() })
+    }
 
-    m.reply(`✅ Hai acquistato: *${item.name}* per ${item.price.toLocaleString()} 🪙!`)
+    m.reply(`🎉 *ACQUISTO COMPLETATO!*\n\nHai comprato: *${item.name}*\nSottratti: -${item.price.toLocaleString()} 🪙\n\nControlla i tuoi averi con \`.assets\``)
 }
 
-handler.help = ['shop']
+handler.help = ['shop <cat> <item>']
 handler.tags = ['economy']
-handler.command = /^(shop|negozio|buy|compra)$/i
+handler.command = /^(shop|buy|compra)$/i
+
 export default handler
