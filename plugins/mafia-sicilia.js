@@ -22,7 +22,7 @@ let handler = async (m, { conn, command, args, usedPrefix }) => {
             sottocapo: null,
             members: [m.sender],
             fondo: 0,
-            pizzo_totale: 0,
+            pizzu_totale: 0,
             level: 1
         }
         return m.reply(`🌹 *Benvenuto Padrino.*\nLa famigghia *${name}* ora domina queste strade.\nUsa \`.famigghia\` per gestire i tuoi uomini.`)
@@ -39,7 +39,7 @@ let handler = async (m, { conn, command, args, usedPrefix }) => {
         list += `💰 *Fondo Comune:* ${g.fondo.toLocaleString()} 🪙\n`
         list += `📈 *Potere (Livello):* ${g.level}\n`
         list += `━━━━━━━━━━━━━━━━━━━━\n`
-        list += `📍 *Comandi:* \`.invita\`, \`.deposito\`, \`.pizzo\``
+        list += `📍 *Comandi:* \`.invita\`, \`.deposito\`, \`.pizzu\``
         
         return conn.reply(m.chat, list, m, { mentions: [g.don, g.sottocapo].filter(v => v) })
     }
@@ -57,10 +57,10 @@ let handler = async (m, { conn, command, args, usedPrefix }) => {
         return m.reply(`✅ @${who.split('@')[0]} ora è un uomo d'onore della famigghia *${userGang}*!`, null, { mentions: [who] })
     }
 
-    if (command === 'pizzo') {
+    if (command === 'pizzu') {
         if (!userGang) return m.reply('🚫 Non hai una famigghia che ti protegge.')
         let cooldown = 3600000 * 4 // 4 ore
-        if (new Date() - (user.lastPizzo || 0) < cooldown) return m.reply('⏳ I commercianti hanno già pagato. Torna più tardi.')
+        if (new Date() - (user.lastpizzu || 0) < cooldown) return m.reply('⏳ I commercianti hanno già pagato. Torna più tardi.')
 
         let guadagno = Math.floor(Math.random() * (5000 - 2000 + 1)) + 2000
         let tassafamigghia = Math.floor(guadagno * 0.2) // 20% va al fondo comune
@@ -68,9 +68,9 @@ let handler = async (m, { conn, command, args, usedPrefix }) => {
 
         user.money += netto
         gangs[userGang].fondo += tassafamigghia
-        user.lastPizzo = new Date() * 1
+        user.lastpizzu = new Date() * 1
 
-        m.reply(`🇮🇹 *RISCOSSIONE PIZZO*\nHai riscosso dai negozi: +${guadagno} 🪙\n💰 Versato nel fondo famigghia (20%): -${tassafamigghia} 🪙\n💵 In tasca: +${netto} 🪙`)
+        m.reply(`🇮🇹 *RISCOSSIONE pizzu*\nHai riscosso dai negozi: +${guadagno} 🪙\n💰 Versato nel fondo famigghia (20%): -${tassafamigghia} 🪙\n💵 In tasca: +${netto} 🪙`)
     }
 }
 
