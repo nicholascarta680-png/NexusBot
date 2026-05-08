@@ -74,5 +74,5 @@ let handler = async (m, { conn, command, args, usedPrefix }) => {
     }
 }
 
-handler.command = /^(creafamiglia|famiglia|invita|pizzo|gang)$/i
+handler.command = /^(creafamigghia|famigghia|invita|pizzu|gang)$/i
 export default handler
