@@ -44,11 +44,14 @@ let handler = async (m, { conn, command, args, usedPrefix }) => {
     let itemKey = args[1]?.toLowerCase()
 
     if (!items[category]) {
-        return m.reply(`🛒 *CENTRO COMMERCIALE ELIXIR*\n\nScegli una categoria: \`${usedPrefix + command} <categoria>\`
-        
-🏘️ *Immobili:* \`case\` o \`ville\`
-🏎️ *Trasporti:* \`veicoli\`
-💼 *Economia:* \`business\``)
+        let msg = `💎 *ELIXIR LUXURY SHOP*\n`
+        msg += `━━━━━━━━━━━━━━━━━━━━\n\n`
+        msg += `🏙️ \`${usedPrefix + command} case\`\n`
+        msg += `🏰 \`${usedPrefix + command} ville\`\n`
+        msg += `🏎️ \`${usedPrefix + command} veicoli\`\n`
+        msg += `🏢 \`${usedPrefix + command} business\`\n\n`
+        msg += `✨ *Scegli la tua prossima conquista.*`
+        return m.reply(msg)
     }
 
     if (!itemKey) {
@@ -56,33 +59,38 @@ let handler = async (m, { conn, command, args, usedPrefix }) => {
         list += `━━━━━━━━━━━━━━━━━━━━\n\n`
         for (let key in items[category]) {
             let itm = items[category][key]
-            list += `• *${itm.name}* (\`${key}\`)\n`
-            list += `  💰 Prezzo: ${itm.price.toLocaleString()} 🪙\n`
-            if (itm.rent) list += `  🏠 Affitto: +${itm.rent.toLocaleString()} 🪙\n`
-            if (itm.income) list += `  📈 Rendita: +${itm.income.toLocaleString()} 🪙\n`
-            list += `\n`
+            list += `【 *${itm.name.toUpperCase()}* 】\n`
+            list += `ID: \`${key}\`\n`
+            list += `💰 Prezzo: *${itm.price.toLocaleString()}* 🪙\n`
+            if (itm.rent) list += `🏠 Affitto: +${itm.rent.toLocaleString()} 🪙\n`
+            if (itm.income) list += `📈 Rendita: +${itm.income.toLocaleString()} 🪙\n`
+            list += `────────────────────\n`
         }
-        list += `✍️ Compra con: \`${usedPrefix + command} ${category} <nome-oggetto>\``
+        list += `\n🛒 *Acquista:* \`${usedPrefix + command} ${category} <id>\``
         return m.reply(list)
     }
 
     let item = items[category][itemKey]
-    if (!item) return m.reply('❌ Questo oggetto non esiste in questa categoria.')
-    if (user.money < item.price) return m.reply(`🚫 Non hai abbastanza soldi! Ti mancano ${(item.price - user.money).toLocaleString()} 🪙`)
+    if (!item) return m.reply('❌ Articolo non disponibile.')
+    
+    let count = [...user.properties, ...user.vehicles].filter(i => i.key === itemKey).length
+    if (count >= 100) return m.reply(`🚫 Hai raggiunto il limite massimo (100) per *${item.name}*.`)
+
+    if (user.money < item.price) return m.reply(`⚠️ *Fondi insufficienti!*\nTi mancano: ${(item.price - user.money).toLocaleString()} 🪙`)
 
     user.money -= item.price
-    
-    // Salvataggio nel database
-    if (category === 'case' || category === 'ville' || category === 'business') {
-        user.properties.push({ ...item, category, lastClaim: Date.now() })
+    let dataToSave = { ...item, key: itemKey, category, boughtAt: Date.now(), level: 1 }
+
+    if (['case', 'ville', 'business'].includes(category)) {
+        user.properties.push(dataToSave)
     } else {
-        user.vehicles.push({ ...item, category, boughtAt: Date.now() })
+        user.vehicles.push(dataToSave)
     }
 
-    m.reply(`🎉 *ACQUISTO COMPLETATO!*\n\nHai comprato: *${item.name}*\nSottratti: -${item.price.toLocaleString()} 🪙\n\nControlla i tuoi averi con \`.assets\``)
+    m.reply(`✨ *ACQUISTO COMPLETATO*\n━━━━━━━━━━━━━━━\n\nHai ottenuto: *${item.name}*\nPosseduti: ${count + 1}/100\n\n_Visualizza il tuo impero con .assets_`)
 }
 
-handler.help = ['shop <cat> <item>']
+handler.help = ['shop <categoria> <id>']
 handler.tags = ['economy']
 handler.command = /^(shop|buy|compra)$/i
 
