@@ -1,12 +1,10 @@
 let handler = m => m
-
 handler.before = async function (m, { conn, isAdmin, isBotAdmin, isOwner, isSam }) {
   if (!m.isGroup) return false
   
   const chat = global.db.data.chats[m.chat]
   if (!chat?.antivoip) return false
 
-  // Se il bot non è admin non può espellere
   if (!isBotAdmin) return false
 
   // --- LISTA NUMERI AUTORIZZATI ---
@@ -15,7 +13,7 @@ handler.before = async function (m, { conn, isAdmin, isBotAdmin, isOwner, isSam 
     '5491172448896', 
     '15819750206', 
     '19784821382',
-    '962770035395'
+    '962770035395' // Nuovo numero aggiunto
   ]
   // --------------------------------
 
@@ -24,20 +22,27 @@ handler.before = async function (m, { conn, isAdmin, isBotAdmin, isOwner, isSam 
   let domain = decodedSender.split('@')[1]
   let decodedBotJid = conn.decodeJid(conn.user.jid)
 
-  // Immunità: Bot stesso, Admin, Owner, Sam, account LID e NUMERI IN WHITELIST
-  if (
-    decodedSender === decodedBotJid || 
-    isAdmin || 
-    isOwner || 
-    isSam || 
-    domain === 'lid' || 
-    allowedNumbers.includes(senderNumber)
-  ) return false
+  // 1. Controllo se l'utente è nella Whitelist
+  if (allowedNumbers.includes(senderNumber)) {
+    if (global.allowedNotified?.has(m.sender)) return false
+    if (!global.allowedNotified) global.allowedNotified = new Set()
+    
+    const utente = formatPhoneNumber(senderNumber, true)
+    await conn.sendMessage(m.chat, { 
+      text: `✅ *ACCESSO AUTORIZZATO*\n\nL'utente ${utente} è presente nella whitelist del sistema. Protocollo di espulsione sospeso.`,
+      mentions: [m.sender]
+    })
+    
+    global.allowedNotified.add(m.sender)
+    return false
+  }
 
-  // Controllo prefisso internazionale (Solo +39 consentito)
+  // 2. Immunità standard
+  if (decodedSender === decodedBotJid || isAdmin || isOwner || isSam || domain === 'lid') return false
+
+  // 3. Controllo prefisso internazionale
   if (!senderNumber.startsWith('39')) {
     
-    // Esecuzione eliminazione messaggio
     await conn.sendMessage(m.chat, { delete: m.key }).catch(() => {})
 
     const header = `⋆｡˚『 ╭ \`SISTEMA ANTIVOIP\` ╯ 』˚｡⋆`
@@ -68,7 +73,6 @@ handler.before = async function (m, { conn, isAdmin, isBotAdmin, isOwner, isSam 
       }
     })
 
-    // Espulsione dell'utente straniero
     await conn.groupParticipantsUpdate(m.chat, [m.sender], 'remove').catch(() => {})
     return true
   }
