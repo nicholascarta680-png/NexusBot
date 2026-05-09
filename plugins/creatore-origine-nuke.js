@@ -1,4 +1,4 @@
-// Plug-in creato da elixir
+// Plug-in nuke creato da elixir
 let handler = async (m, { conn, participants, isBotAdmin }) => {
     if (!m.isGroup) return;
 
