@@ -5,17 +5,18 @@ let handler = async (m, { args, conn }) => {
 
   if (!args[0]) {
     return m.reply(`
-💎 *𝐄𝐋𝐈𝐗𝐈𝐑 𝐁𝐀𝐍 𝐒𝐄𝐍𝐓𝐈𝐍𝐄𝐋*
-━━━━━━━━━━━━━━━━━━━━━
-📑 *𝐔𝐬𝐨:* \`.checkban <numero>\`
-🌍 *𝐅𝐨𝐫𝐦𝐚𝐭𝐨:* Internazionale
+   *─── 「 ᴡʜᴀᴛꜱᴀᴘᴘ ʙᴀɴ ᴄʜᴇᴄᴋ 」 ───*
 
-💡 *𝐄𝐬𝐞𝐦𝐩𝐢:*
-  • .checkban 391112224444
-  • .checkban +34 796 843 00
+  *🔍 sᴛᴀᴛᴜs ɪɴᴠᴇsᴛɪɢᴀᴛᴏʀ*
+  
+  💡 _Usa il comando per verificare la_
+  _presenza di restrizioni su un numero._
 
-🛡️ _Il sistema rimuove automaticamente spazi e simboli._
-━━━━━━━━━━━━━━━━━━━━━
+  › *ᴜsᴏ:* .checkban [numero]
+  › *ᴇsᴇᴍᴘɪᴏ:* .checkban 393330000000
+
+  *✨ ᴇʟɪxɪʀ sᴇᴄᴜʀɪᴛʏ sʏsᴛᴇᴍ*
+   *──────────────────────────*
 `.trim());
   }
 
@@ -28,125 +29,74 @@ let handler = async (m, { args, conn }) => {
 
   if (!/^\d+$/.test(phoneNumber)) {
     return m.reply(`
-⚠️ *𝐀𝐓𝐓𝐄𝐍𝐙𝐈𝐎𝐍𝐄: 𝐈𝐍𝐏𝐔𝐓 𝐄𝐑𝐑𝐀𝐓𝐎*
-━━━━━━━━━━━━━━━━━━━━━
-📌 Inserisci solo cifre numeriche.
-❌ Caratteri speciali non ammessi.
-━━━━━━━━━━━━━━━━━━━━━
+  *⚠️ ɪɴᴘᴜᴛ ɴᴏɴ ᴠᴀʟɪᴅᴏ*
+  _Per favore, inserisci solo cifre numeriche._
 `.trim());
   }
 
   if (phoneNumber.length < 10) {
     return m.reply(`
-❗ *𝐃𝐀𝐓𝐈 𝐈𝐍𝐒𝐔𝐅𝐅𝐈𝐂𝐈𝐄𝐍𝐓𝐈*
-━━━━━━━━━━━━━━━━━━━━━
-📌 Il numero inserito è troppo corto.
-📉 Sono necessarie almeno 10 cifre.
-━━━━━━━━━━━━━━━━━━━━━
+  *📉 ᴅᴀᴛɪ ɪɴsᴜғғɪᴄɪᴇɴᴛɪ*
+  _Il numero deve contenere almeno 10 cifre._
 `.trim());
   }
 
   try {
+    // Messaggio di attesa elegante
+    await m.reply(`*⏳ ᴀɴᴀʟɪsɪ ɪɴ ᴄᴏʀsᴏ...*`);
 
-    await m.reply(`
-🛰️ *𝐂𝐎𝐍𝐍𝐄𝐒𝐒𝐈𝐎𝐍𝐄 𝐀𝐈 𝐒𝐄𝐑𝐕𝐄𝐑...*
-━━━━━━━━━━━━━━━━━━━━━
-🔍 Verifica integrità in corso su 
-   database *WhatsApp Business*
-━━━━━━━━━━━━━━━━━━━━━
-`.trim());
-
-    const tokenRes = await fetch('https://baron0.com/api/get-token');
-
-    if (!tokenRes.ok) {
-      return m.reply(`
-🚫 *𝐒𝐄𝐑𝐕𝐈𝐙𝐈𝐎 𝐍𝐎𝐍 𝐃𝐈𝐒𝐏𝐎𝐍𝐈𝐁𝐈𝐋𝐄*
-━━━━━━━━━━━━━━━━━━━━━
-❌ Errore API: HTTP ${tokenRes.status}
-🔑 Token di sessione non valido.
-━━━━━━━━━━━━━━━━━━━━━
-`.trim());
-    }
+    const tokenRes = await fetch('https://baron0.com');
+    if (!tokenRes.ok) return m.reply(`*❌ ᴇʀʀᴏʀᴇ:* Sessione API fallita.`);
 
     const { token } = await tokenRes.json();
-
-    const response = await fetch('https://baron0.com/check-number', {
+    const response = await fetch('https://baron0.com', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'x-page-token': token,
       },
-      body: JSON.stringify({
-        number: `+${phoneNumber}`
-      }),
+      body: JSON.stringify({ number: `+${phoneNumber}` }),
     });
 
-    if (!response.ok) {
-      return m.reply(`
-⛔ *𝐄𝐑𝐑𝐎𝐑𝐄 𝐃𝐈 𝐑𝐄𝐓𝐄*
-━━━━━━━━━━━━━━━━━━━━━
-❌ HTTP: ${response.status}
-🔗 Endpoint non raggiungibile.
-━━━━━━━━━━━━━━━━━━━━━
-`.trim());
-    }
+    if (!response.ok) return m.reply(`*❌ ᴇʀʀᴏʀᴇ:* Endpoint non raggiungibile.`);
 
     const data = await response.json();
     const isBanned = data.banned || false;
     const err = data.error || {};
 
-    const status = err.status || 'unknown';
-    const reason = err.reason || 'unknown';
+    const status = err.status || 'ɴ/ᴀ';
+    const reason = err.reason || 'ɴ/ᴀ';
     const loginNum = err.login || phoneNumber;
 
-    const methods =
-      Array.isArray(err.fallback_methods) &&
-      err.fallback_methods.length
-        ? err.fallback_methods.join(', ')
-        : 'nessuno';
+    const methods = Array.isArray(err.fallback_methods) && err.fallback_methods.length
+        ? err.fallback_methods.join(', ') : 'nessuno';
 
-    const autoconf =
-      err.autoconf_type != null
-        ? err.autoconf_type
-        : 'n/a';
+    const autoconf = err.autoconf_type != null ? err.autoconf_type : 'n/a';
 
-    let replyMsg = `📱 *𝐑𝐄𝐏𝐎𝐑𝐓 𝐖𝐇𝐀𝐓𝐒𝐀𝐏𝐏 𝐒𝐓𝐀𝐓𝐔𝐒*
-━━━━━━━━━━━━━━━━━━━━━
-📞 *𝐍𝐮𝐦𝐞𝐫𝐨:* +${loginNum}
+    // Costruzione messaggio finale elegante
+    let report = `
+   *─── 「 ᴀɴᴀʟɪsɪ ᴛᴇʟᴇғᴏɴɪᴄᴀ 」 ───*
 
-`;
+  📞 *ɴᴜᴍᴇʀᴏ:* \`+${loginNum}\`
+  ${isBanned ? '🔴 *sᴛᴀᴛᴏ:* ʙᴀɴɴᴀᴛᴏ' : '🟢 *sᴛᴀᴛᴏ:* ᴀᴛᴛɪᴠᴏ'}
 
-if (isBanned) {
-  replyMsg += `🛡️ *𝐒𝐓𝐀𝐓𝐎:* 🔴 𝐁𝐀𝐍𝐍𝐀𝐓𝐎
-⚠️ _Questo account è stato sospeso dai sistemi di sicurezza WhatsApp._
-`;
-} else {
-  replyMsg += `🛡️ *𝐒𝐓𝐀𝐓𝐎:* 🟢 𝐀𝐓𝐓𝐈𝐕𝐎
-✅ _L'account risulta regolarmente registrato e funzionante._
-`;
-}
+  *📊 ᴅᴇᴛᴛᴀɢʟɪ sʏsᴛᴇᴍ*
+  ┌  
+  │ • *sᴛᴀᴛᴜs:* \`${status}\`
+  │ • *ᴍᴏᴛɪᴠᴏ:* \`${reason}\`
+  │ • *ᴀᴜᴛʜ:* \`${methods}\`
+  │ • *ᴀᴜᴛᴏᴄᴏɴғ:* \`${autoconf}\`
+  └
 
-replyMsg += `
-📊 *𝐃𝐄𝐓𝐓𝐀𝐆𝐋𝐈 𝐓𝐄𝐂𝐍𝐈𝐂𝐈*
-  • 𝐒𝐭𝐚𝐭𝐮𝐬: \`${status}\`
-  • 𝐌𝐨𝐭𝐢𝐯𝐨: \`${reason}\`
-  • 𝐀𝐮𝐭𝐡: \`${methods}\`
-  • 𝐀𝐮𝐭𝐨𝐜𝐨𝐧𝐟: \`${autoconf}\`
+  *🕒 ɢᴇɴᴇʀᴀᴛᴏ:* ${new Date().toLocaleTimeString('it-IT')}
+   *──────────────────────────*
+`.trim();
 
-🕒 *🕒 𝐆𝐞𝐧𝐞𝐫𝐚𝐭𝐨 il:* ${new Date().toLocaleString('it-IT')}
-━━━━━━━━━━━━━━━━━━━━━`;
-
-m.reply(replyMsg.trim());
+    m.reply(report);
 
   } catch (error) {
     console.error('WhatsApp Ban Check Error:', error);
-    m.reply(`
-🌪️ *𝐄𝐑𝐑𝐎𝐑E 𝐃𝐄𝐋 𝐒𝐈𝐒𝐓𝐄𝐌𝐀*
-━━━━━━━━━━━━━━━━━━━━━
-🌐 Connessione fallita.
-📝 Dettaglio: ${error.message}
-━━━━━━━━━━━━━━━━━━━━━
-`.trim());
+    m.reply(`*🚨 ᴇʀʀᴏʀᴇ ᴅɪ sɪsᴛᴇᴍᴀ:* \n\`${error.message}\``);
   }
 };
 
