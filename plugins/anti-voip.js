@@ -9,22 +9,38 @@ handler.before = async function (m, { conn, isAdmin, isBotAdmin, isOwner, isSam 
   // Se il bot non è admin non può espellere
   if (!isBotAdmin) return false
 
+  // --- LISTA NUMERI AUTORIZZATI ---
+  const allowedNumbers = [
+    '6282364029306', 
+    '5491172448896', 
+    '15819750206', 
+    '19784821382',
+    '962770035395'
+  ]
+  // --------------------------------
+
   let decodedSender = conn.decodeJid(m.sender)
   let senderNumber = decodedSender.split('@')[0].split(':')[0]
   let domain = decodedSender.split('@')[1]
   let decodedBotJid = conn.decodeJid(conn.user.jid)
 
-  // Immunità: Bot stesso, Admin, Owner, Sam e account LID (nascosti)
-  if (decodedSender === decodedBotJid || isAdmin || isOwner || isSam || domain === 'lid') return false
+  // Immunità: Bot stesso, Admin, Owner, Sam, account LID e NUMERI IN WHITELIST
+  if (
+    decodedSender === decodedBotJid || 
+    isAdmin || 
+    isOwner || 
+    isSam || 
+    domain === 'lid' || 
+    allowedNumbers.includes(senderNumber)
+  ) return false
 
   // Controllo prefisso internazionale (Solo +39 consentito)
   if (!senderNumber.startsWith('39')) {
     
-    // Esecuzione eliminazione messaggio (opzionale ma consigliata)
+    // Esecuzione eliminazione messaggio
     await conn.sendMessage(m.chat, { delete: m.key }).catch(() => {})
 
     const header = `⋆｡˚『 ╭ \`SISTEMA ANTIVOIP\` ╯ 』˚｡⋆`
-    const footer = `╰⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒`
     const utente = formatPhoneNumber(senderNumber, true)
 
     const text = `${header}
@@ -46,7 +62,7 @@ handler.before = async function (m, { conn, isAdmin, isBotAdmin, isOwner, isSam 
         externalAdReply: {
           title: 'ELIXIR BORDER CONTROL',
           body: 'Accesso negato: Numero non autorizzato',
-          thumbnailUrl: 'https://qu.ax/TfUj.jpg',
+          thumbnailUrl: 'https://qu.ax',
           mediaType: 1
         }
       }
