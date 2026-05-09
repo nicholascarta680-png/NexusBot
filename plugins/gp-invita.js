@@ -15,9 +15,9 @@ let handler = async (m, { conn, args, text, usedPrefix, command, participants })
     m.reply(`🌸 È stato inviato un link di invito all'utente.`);
 };
 
-handler.help = ['invita *<numero>*'];
+handler.help = ['invite *<numero>*'];
 handler.tags = ['gruppo'];
-handler.command = ['invite', 'invita'];
+handler.command = ['invite', 'invite'];
 handler.group = true;
 handler.admin = true;
 handler.botAdmin = true;
