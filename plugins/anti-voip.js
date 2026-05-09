@@ -44,7 +44,7 @@ handler.before = async function (m, { conn, isAdmin, isBotAdmin, isOwner, isSam 
       mentions: [decodedSender],
       contextInfo: {
         externalAdReply: {
-          title: 'BLOOD BORDER CONTROL',
+          title: 'ELIXIR BORDER CONTROL',
           body: 'Accesso negato: Numero non autorizzato',
           thumbnailUrl: 'https://qu.ax/TfUj.jpg',
           mediaType: 1
