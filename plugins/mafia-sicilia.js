@@ -4,16 +4,16 @@ let handler = async (m, { conn, command, args, usedPrefix }) => {
     if (!global.db.data.gangs) global.db.data.gangs = {}
     let gangs = global.db.data.gangs
 
-    // Cerca se l'utente appartiene già a una famigghia
-    let userGang = Object.keys(gangs).find(name => gangs[name].members.includes(m.sender))
+    let userGangName = Object.keys(gangs).find(name => gangs[name].members.includes(m.sender))
+    let g = userGangName ? gangs[userGangName] : null
 
     if (command === 'creafamigghia' || command === 'fondafamigghia') {
-        if (userGang) return m.reply(`🚫 Già fai parti d'a famigghia *${userGang}*, compà!`)
-        if (user.money < 1000000) return m.reply('💰 Pi funnari na famigghia servunu *1.000.000 🪙*. Non hai abbastanza rispettu (o sordi).')
+        if (userGangName) return m.reply(`🚫 Fai già parte dei *${userGangName}*!`)
+        if (user.money < 1000000) return m.reply('💰 Servono *1.000.000 🪙* per fondare un impero.')
         
         let name = args.join(' ')
-        if (!name) return m.reply(`✍️ Scrivi u nomi d'a Famigghia!\nEsempio: \`${usedPrefix + command} Corleone\``)
-        if (gangs[name]) return m.reply('❌ Stu nomi è già canusciutu in cità, scegni n\'autru.')
+        if (!name) return m.reply(`✍️ Scegli il nome!\nEsempio: \`${usedPrefix + command} Corleone\``)
+        if (gangs[name]) return m.reply('❌ Questo nome è già temuto in città.')
 
         user.money -= 1000000
         gangs[name] = {
@@ -22,60 +22,98 @@ let handler = async (m, { conn, command, args, usedPrefix }) => {
             sottocapo: null,
             members: [m.sender],
             fondo: 0,
-            pizzu_totale: 0,
-            level: 1
+            level: 1,
+            lastAttack: 0
         }
-        return m.reply(`🌹 *Baciamo le mani, Padrino.*\nA famigghia *${name}* ora cumanna pi sti strati.\nUsa \`.famigghia\` pi gestiri i tò picciotti.`)
+        return m.reply(`🌹 *BACIAMO LE MANI, PADRINO*\n\nLa famiglia *${name}* ora domina queste strade.\nUsa \`.famigghia\` per gestire i tuoi picciotti.`)
     }
 
     if (command === 'famigghia' || command === 'gang') {
-        if (!userGang) return m.reply(`🚫 Non apparteni a nuda famigghia. Usa \`.creafamigghia <nomi>\` pi cuminciari.`)
-        let g = gangs[userGang]
-        let list = `🌹 *FAMIGGHIA ${g.name.toUpperCase()}* 🌹\n`
-        list += `━━━━━━━━━━━━━━━━━━━━\n`
-        list += `👑 *Padrino (Don):* @${g.don.split('@')[0]}\n`
-        list += `🥈 *Sottocapu:* ${g.sottocapo ? '@' + g.sottocapo.split('@')[0] : 'Nuddu'}\n`
-        list += `👥 *Picciotti:* ${g.members.length}\n`
-        list += `💰 *Cassa d'a Famigghia:* ${g.fondo.toLocaleString()} 🪙\n`
-        list += `📈 *Putiri (Livellu):* ${g.level}\n`
-        list += `━━━━━━━━━━━━━━━━━━━━\n`
-        list += `📍 *Cumanni:* \`.invita\`, \`.pizzu\``
+        if (!g) return m.reply(`🚫 Non appartieni a nessuna famiglia.\nUsa \`.creafamigghia <nome>\` per iniziare.`)
         
-        return conn.reply(m.chat, list, m, { mentions: [g.don, g.sottocapo].filter(v => v) })
+        let report = `🌹 *FAMIGLIA ${g.name.toUpperCase()}* 🌹\n`
+        report += `━━━━━━━━━━━━━━━━━━━━\n\n`
+        report += `👑 *Don:* @${g.don.split('@')[0]}\n`
+        report += `🥈 *Sottocapo:* ${g.sottocapo ? '@' + g.sottocapo.split('@')[0] : '_Nessuno_'}\n`
+        report += `👥 *Membri:* ${g.members.length}\n`
+        report += `💰 *Cassa:* ${g.fondo.toLocaleString()} 🪙\n`
+        report += `📈 *Livello:* ${g.level}\n\n`
+        report += `━━━━━━━━━━━━━━━━━━━━\n`
+        report += `📍 \`${usedPrefix}invita\` • \`${usedPrefix}pizzu\`\n`
+        report += `📍 \`${usedPrefix}attacca\` • \`${usedPrefix}cacciao\``
+        
+        return conn.sendMessage(m.chat, { text: report, mentions: g.members }, { quoted: m })
     }
 
     if (command === 'invita') {
-        if (!userGang) return m.reply('🚫 Non si in tra na famigghia.')
-        let g = gangs[userGang]
-        if (m.sender !== g.don && m.sender !== g.sottocapo) return m.reply('🚷 Sulu u *Don* o u *Sottocapu* ponnu chiamari novi picciotti.')
+        if (!g) return m.reply('🚫 Non hai una famiglia.')
+        if (m.sender !== g.don && m.sender !== g.sottocapo) return m.reply('🚷 Solo il *Don* o il *Sottocapo* possono arruolare.')
         
         let who = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : null
-        if (!who) return m.reply('👤 Tagga u picciottu ca vo arruolari.')
-        if (Object.values(gangs).some(f => f.members.includes(who))) return m.reply('❌ Stu cristianu apparteni già a n\'autra famigghia.')
+        if (!who) return m.reply('👤 Tagga qualcuno da arruolare.')
+        if (Object.values(gangs).some(f => f.members.includes(who))) return m.reply('❌ È già impegnato con un\'altra famiglia.')
 
         g.members.push(who)
-        return m.reply(`✅ @${who.split('@')[0]} ora è un omu d'onuri d'a famigghia *${userGang}*!`, null, { mentions: [who] })
+        return m.reply(`✅ @${who.split('@')[0]} è ora un uomo d'onore dei *${userGangName}*!`, null, { mentions: [who] })
     }
 
     if (command === 'pizzu') {
-        if (!userGang) return m.reply('🚫 Non hai na famigghia ca ti pruteggi.')
-        let cooldown = 14400000 // 4 uri
-        if (new Date() - (user.lastpizzu || 0) < cooldown) return m.reply('⏳ I nigozianti già pacaru. Torna cchiù tardi, unn\'essiri esaustivu.')
+        if (!g) return m.reply('🚫 Non hai protezione.')
+        let cooldown = 14400000 
+        if (new Date() - (user.lastpizzu || 0) < cooldown) return m.reply('⏳ I negozianti hanno già pagato. Torna più tardi.')
 
-        let guadagno = Math.floor(Math.random() * (5000 - 2000 + 1)) + 2000
-        let tassafamigghia = Math.floor(guadagno * 0.2) // 20% va alla cassa
+        let guadagno = Math.floor(Math.random() * 3000) + 2000
+        let tassafamigghia = Math.floor(guadagno * 0.2)
         let netto = guadagno - tassafamigghia
 
         user.money += netto
-        gangs[userGang].fondo += tassafamigghia
+        g.fondo += tassafamigghia
         user.lastpizzu = new Date() * 1
 
-        m.reply(`🇮🇹 *RISCOSSIONI D'U PIZZU*\nHai riscossu d'i nigozi: +${guadagno} 🪙\n💰 Versato n'a cassa d'a famigghia (20%): -${tassafamigghia} 🪙\n💵 In scarsella: +${netto} 🪙\n\n*U rispettu è tuttu!*`)
+        m.reply(`🇮🇹 *RISCOSSIONE PIZZO*\n━━━━━━━━━━━━━━━\n\n💰 Lordo: +${guadagno.toLocaleString()} 🪙\n🌹 Alla Cassa: -${tassafamigghia.toLocaleString()} 🪙\n💵 Guadagno: +${netto.toLocaleString()} 🪙`)
+    }
+
+    if (command === 'attacca' || command === 'guerra') {
+        if (!g) return m.reply('🚫 Non puoi dichiarare guerra da solo.')
+        if (m.sender !== g.don && m.sender !== g.sottocapo) return m.reply('🚷 Solo i capi possono ordinare un attacco.')
+
+        let targetName = args.join(' ')
+        if (!targetName) return m.reply(`⚔️ Usa: \`${usedPrefix + command} <nome_nemico>\``)
+        
+        let enemy = gangs[targetName]
+        if (!enemy) return m.reply('❌ Famiglia nemica non trovata.')
+        if (targetName === userGangName) return m.reply('❓ Vuoi sparare ai tuoi uomini?')
+
+        let wait = 3600000 
+        if (new Date() - (g.lastAttack || 0) < wait) return m.reply('⏳ I tuoi uomini stanno ricaricando. Torna tra un\'ora.')
+
+        g.lastAttack = new Date() * 1
+        if (Math.random() > 0.5) {
+            let stolen = Math.floor(enemy.fondo * 0.2)
+            enemy.fondo -= stolen
+            g.fondo += stolen
+            return conn.sendMessage(m.chat, { text: `🔥 *VITTORIA!* 🔥\nAssalto ai *${targetName}* riuscito.\n💰 Bottino: +${stolen.toLocaleString()} 🪙`, mentions: g.members.concat(enemy.members) })
+        } else {
+            let loss = Math.floor(g.fondo * 0.1)
+            g.fondo -= loss
+            return m.reply(`💀 *SCONFITTA!* 💀\nL'assalto è fallito.\n📉 Perdite cassa: -${loss.toLocaleString()} 🪙`)
+        }
+    }
+
+    if (command === 'cacciao') {
+        if (!g) return m.reply('🚫 Non hai potere.')
+        if (m.sender !== g.don) return m.reply('🚷 Solo il *Don* può espellere i membri.')
+        let who = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : null
+        if (!who || who === g.don) return m.reply('👤 Tagga chi vuoi cacciare.')
+
+        g.members = g.members.filter(m => m !== who)
+        if (who === g.sottocapo) g.sottocapo = null
+        return m.reply(`👞 @${who.split('@')[0]} è stato cacciato.`, null, { mentions: [who] })
     }
 }
 
-handler.help = ['famigghia']
+handler.help = ['famigghia', 'pizzu', 'attacca', 'invita']
 handler.tags = ['economy']
-handler.command = /^(creafamigghia|famigghia|invita|pizzu|gang)$/i
+handler.command = /^(creafamigghia|fondafamigghia|famigghia|invita|pizzu|gang|attacca|guerra|cacciao)$/i
 
 export default handler
