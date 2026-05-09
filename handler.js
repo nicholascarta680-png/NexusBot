@@ -365,19 +365,30 @@ if (m.message?.protocolMessage?.type === 'MESSAGE_EDIT') {
 if (!normalizedSender) return;
 
         user = global.db.data.users[normalizedSender] || (global.db.data.users[normalizedSender] = {
-            exp: 0,
-            money: 0,
-            muto: false,
-            registered: false,
-            name: m.pushName || '?',
-            age: -1,
-            regTime: -1,
-            banned: false,
-            bank: 0,
-            level: 0,
-            firstTime: Date.now(),
-            spam: 0
-        })
+    // --- Variabili Base esistenti ---
+    exp: 0,
+    money: 0,
+    muto: false,
+    registered: false,
+    name: m.pushName || '?',
+    age: -1,
+    regTime: -1,
+    banned: false,
+    bank: 0,
+    level: 0,
+    firstTime: Date.now(),
+    spam: 0,
+
+    // --- Integrazione Nuove Variabili Elixir ---
+    properties: [],      // Lista case, ville, business
+    vehicles: [],        // Lista auto, yacht, jet
+    job: null,           // Nome del lavoro attuale
+    salary: 0,           // Paga base
+    workExp: 0,          // Esperienza lavorativa per i bonus
+    corrotto: false,     // Stato protezione corruzione
+    corrottoExp: 0,      // Scadenza protezione corruzione
+    lastClaim: 0         // Ultimo ritiro stipendio/rendite
+})
 
         chat = global.db.data.chats[m.chat] || (global.db.data.chats[m.chat] = {
             isBanned: false,
