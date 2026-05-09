@@ -3,19 +3,17 @@ let handler = async (m, { conn, command, args, usedPrefix }) => {
     let user = global.db.data.users[m.sender]
     if (typeof user.workExp === 'undefined') user.workExp = 0
 
-    // Controllo se l'utente è un Padrino
     if (!global.db.data.gangs) global.db.data.gangs = {}
     let isPadrino = Object.values(global.db.data.gangs).some(g => g.don === m.sender)
 
-    // Comando per licenziarsi
-    if (command === 'licenziati' || (args[0] === 'stop')) {
-        if (!user.job) return m.reply("❌ Non hai un lavoro da cui licenziarti.")
-        if (isPadrino) return m.reply("🌹 Un Padrino non si licenzia, comanda e basta.")
+    if (command === 'licenziati') {
+        if (!user.job) return m.reply("❌ Non hai un impiego attivo da cui dimetterti.")
+        if (isPadrino) return m.reply("🌹 Un Padrino non serve nessuno, comanda e basta.")
         
         user.job = null
         user.salary = 0
         user.workExp = 0
-        return m.reply("✅ Ti sei licenziato. Ora sei ufficialmente disoccupato.")
+        return m.reply("✅ Hai rassegnato le dimissioni. Ora sei disoccupato.")
     }
 
     const lavori = {
@@ -37,26 +35,53 @@ let handler = async (m, { conn, command, args, usedPrefix }) => {
     }
 
     if (!args[0]) {
-        if (isPadrino) return m.reply("👑 Il tuo ruolo è: *PADRINO*\nNon hai bisogno di un lavoro normale, riscuoti il `.pizzu`!")
+        if (isPadrino) return m.reply("👑 *STATUS: PADRINO*\nIl tuo impero non prevede capi ufficio. Gestisci la Famiglia.")
+        
         if (!user.job) {
-            let list = `💼 *LAVORI DISPONIBILI:*\n`
-            Object.keys(lavori).forEach(k => list += `- ${k} (${lavori[k].paga} 🪙)\n`)
-            return m.reply(list + `\n✍️ Scegli con: \`${usedPrefix + command} <nome>\``)
+            let list = `💼 *OFFERTE DI LAVORO ELIXIR*\n`
+            list += `━━━━━━━━━━━━━━━━━━━━\n\n`
+            for (let k in lavori) {
+                list += `  ▫️ \`${k}\` ➭ *${lavori[k].paga.toLocaleString()}* 🪙\n`
+            }
+            list += `\n✍️ *Candidati:* \`${usedPrefix + command} <nome-lavoro>\``
+            return m.reply(list)
         }
-        return m.reply(`💼 *LAVORO ATTUALE:* ${user.job.toUpperCase()}\n📈 Livello: ${Math.floor(user.workExp / 10)}\n\nUsa \`${usedPrefix}licenziati\` per smettere.`)
+
+        let lvl = Math.floor(user.workExp / 10)
+        let bonus = 1 + (lvl * 0.05)
+        let pagaNetta = Math.floor(user.salary * bonus)
+
+        let status = `📊 *PROFILO PROFESSIONALE*\n`
+        status += `━━━━━━━━━━━━━━━━━━━━\n\n`
+        status += `👤 *Impiego:* ${user.job}\n`
+        status += `📈 *Anzianità:* Lvl ${lvl}\n`
+        status += `💰 *Salario Base:* ${user.salary.toLocaleString()} 🪙\n`
+        status += `✨ *Bonus Carriera:* +${(lvl * 5)}%\n`
+        status += `────────────────────\n`
+        status += `💵 *Paga Prossima:* ${pagaNetta.toLocaleString()} 🪙\n\n`
+        status += `👉 Usa \`${usedPrefix}licenziati\` per lasciare il posto.`
+        return m.reply(status)
     }
 
-    if (isPadrino) return m.reply("🚫 Onorevole Padrino, non può abbassarsi a fare un lavoro comune.")
+    if (isPadrino) return m.reply("🚫 Padrino, firmare un contratto di lavoro distruggerebbe la sua reputazione.")
     
     let scelta = args[0].toLowerCase()
-    if (!lavori[scelta]) return m.reply(`❌ Lavoro non trovato.`)
+    if (!lavori[scelta]) return m.reply(`❌ Professione non disponibile nel mercato attuale.`)
 
     user.job = lavori[scelta].nome
     user.salary = lavori[scelta].paga
     user.workExp = 0 
 
-    return m.reply(`✅ Contratto firmato come: *${lavori[scelta].nome}*!`)
+    let ok = `📝 *CONTRATTO STIPULATO*\n`
+    ok += `━━━━━━━━━━━━━━━━━━━━\n\n`
+    ok += `Benvenuto nel team, ora sei un *${lavori[scelta].nome}*.\n`
+    ok += `Il tuo stipendio base è di *${lavori[scelta].paga.toLocaleString()}* 🪙.\n\n`
+    ok += `_Usa .riscuoti ogni 24 ore per ricevere la paga._`
+    return m.reply(ok)
 }
 
+handler.help = ['job', 'licenziati']
+handler.tags = ['economy']
 handler.command = /^(job|jobs|licenziati)$/i
+
 export default handler
