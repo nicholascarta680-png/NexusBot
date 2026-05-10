@@ -55,13 +55,13 @@ async function drawUserCard(ctx, conn, id, x, y, role) {
     let cleanName = rawName.replace(/[^\x00-\x7F]/g, "").trim() || "User";
     ctx.fillText(cleanName.substring(0, 10), x - 20, y - 5);
 
-    ctx.fillStyle = role === 'GENITORE' ? '#f5c2e7' : (role === 'PARTNER' ? '#f38ba8' : '#89b4fa');
+    ctx.fillStyle = ctx.strokeStyle;
     ctx.font = 'italic 11px sans-serif';
     ctx.fillText(role, x - 20, y + 15);
 }
 
 // --- HANDLER ---
-let handler = async (m, { conn, command, usedPrefix, isOwner }) => {
+let handler = async (m, { conn, command, usedPrefix }) => {
     let user = m.sender;
     checkUser(user);
     let marriages = loadMarriages();
@@ -70,7 +70,7 @@ let handler = async (m, { conn, command, usedPrefix, isOwner }) => {
     if (command === 'albero' || command === 'famigliamia') {
         let target = m.mentionedJid[0] || (m.quoted ? m.quoted.sender : user);
         checkUser(target);
-        await m.reply('⏳ *Dipingendo la dinastia reale...*');
+        await m.reply('`⏳ Le cronache del regno stanno tracciando la tua stirpe...`');
 
         const canvas = createCanvas(1000, 900);
         const ctx = canvas.getContext('2d');
@@ -91,7 +91,7 @@ let handler = async (m, { conn, command, usedPrefix, isOwner }) => {
         let figli = u.p || [];
         const centerX = 500;
 
-        ctx.setLineDash([5, 5]);
+        ctx.setLineDash();
         ctx.strokeStyle = "rgba(205, 214, 244, 0.3)";
         ctx.lineWidth = 2;
 
@@ -112,7 +112,7 @@ let handler = async (m, { conn, command, usedPrefix, isOwner }) => {
         if (figli.length > 0) {
             const spacing = 250;
             const startX = centerX - ((figli.length - 1) * spacing / 2);
-            ctx.setLineDash([5, 5]); ctx.strokeStyle = "rgba(205, 214, 244, 0.3)";
+            ctx.setLineDash(); ctx.strokeStyle = "rgba(205, 214, 244, 0.3)";
             ctx.beginPath(); ctx.moveTo(centerX, 390); ctx.lineTo(centerX, 450); ctx.stroke();
             ctx.beginPath(); ctx.moveTo(startX, 450); ctx.lineTo(startX + (figli.length - 1) * spacing, 450); ctx.stroke();
             for (let i = 0; i < figli.length; i++) {
@@ -121,114 +121,99 @@ let handler = async (m, { conn, command, usedPrefix, isOwner }) => {
                 await drawUserCard(ctx, conn, figli[i], fX, 550, 'FIGLIO/A');
             }
         }
-        return conn.sendMessage(m.chat, { image: canvas.toBuffer(), caption: `✨ *DINASTIA DI @${target.split('@')[0]}*`, mentions: [target] }, { quoted: m });
+        return conn.sendMessage(m.chat, { image: canvas.toBuffer(), caption: `✨ *SACIRO ALBERO DELLA DINASTIA* ✨\n\nI legami di @${target.split('@')[0]} sono scritti tra le stelle.`, mentions: [target] }, { quoted: m });
     }
 
-    // --- MATRIMONIO (SOLO TARGET PUÒ ACCETTARE) ---
+    // --- MATRIMONIO ---
     if (command === 'sposa') {
         let target = m.mentionedJid[0] || (m.quoted ? m.quoted.sender : null);
-        if (!target || target === user) return m.reply('`⚠️ Tagga chi vuoi sposare.`');
-        if (marriages[user] || marriages[target]) return m.reply('`⚠️ Uno dei due è già impegnato.`');
+        if (!target || target === user) return m.reply('`⚠️ Devi indicare a chi vuoi donare il tuo cuore.`');
+        if (marriages[user] || marriages[target]) return m.reply('`⚠️ I vostri cuori appartengono già ad altri rami...`');
         
         global.marriage_proposals = global.marriage_proposals || {};
         global.marriage_proposals[target] = { proposer: user, target: target, timeout: setTimeout(() => delete global.marriage_proposals[target], 60000) };
 
         const buttons = [
-            { buttonId: `${usedPrefix}accettasposa`, buttonText: { displayText: 'Accetto 💍' }, type: 1 },
-            { buttonId: `${usedPrefix}rifiuta`, buttonText: { displayText: 'Rifiuto ❌' }, type: 1 }
+            { buttonId: `${usedPrefix}accettasposa`, buttonText: { displayText: 'Sì, ti scelgo 💍' }, type: 1 },
+            { buttonId: `${usedPrefix}rifiuta`, buttonText: { displayText: 'Non ora... ❌' }, type: 1 }
         ];
         return conn.sendMessage(m.chat, { 
-            text: `💍 *PROPOSTA DI MATRIMONIO*\n\n@${user.split('@')[0]} ha chiesto la tua mano @${target.split('@')[0]}.\n\n*Solo @${target.split('@')[0]} può rispondere.*`, 
-            buttons: buttons, 
-            headerType: 1, 
-            mentions: [user, target] 
+            text: `💍 *UNA PROMESSA DI ETERNITÀ*\n\n@${user.split('@')[0]} ha chiesto la tua mano @${target.split('@')[0]}.\n\n*Solo @${target.split('@')[0]} può rispondere.*`, 
+            buttons: buttons, mentions: [user, target] 
         }, { quoted: m });
     }
 
     if (command === 'accettasposa') {
         let prop = global.marriage_proposals[user];
-        if (!prop || user !== prop.target) return; // IGNORE: Se non c'è proposta o chi clicca non è il target
-
-        marriages[user] = prop.proposer; 
-        marriages[prop.proposer] = user;
-        saveMarriages(marriages); 
-        clearTimeout(prop.timeout);
-        delete global.marriage_proposals[user];
-        return m.reply('💖 *Matrimonio celebrato con successo!*');
+        if (!prop || user !== prop.target) return;
+        marriages[user] = prop.proposer; marriages[prop.proposer] = user;
+        saveMarriages(marriages); clearTimeout(prop.timeout); delete global.marriage_proposals[user];
+        return m.reply('✨ *Le campane suonano all\'unisono! Da oggi le vostre anime sono intrecciate in un legame sacro.* 💖');
     }
 
-    // --- ADOZIONE (SOLO TARGET PUÒ ACCETTARE) ---
+    if (command === 'divorzia') {
+        let p = marriages[user];
+        if (!p) return m.reply('`⚠️ Non sei vincolato a nessuno sposo.`');
+        delete marriages[user]; delete marriages[p];
+        saveMarriages(marriages);
+        return m.reply('💔 *L\'INCANTO SI È SPEZZATO...* \n\nLe vostre strade si dividono qui. Quello che un tempo era un "noi", ora torna ad essere solo polvere e ricordi.');
+    }
+
+    // --- ADOZIONE ---
     if (command === 'adotta') {
         let target = m.mentionedJid[0] || (m.quoted ? m.quoted.sender : null);
-        if (!target || target === user) return m.reply('`⚠️ Tagga chi vuoi adottare.`');
+        if (!target || target === user) return m.reply('`⚠️ Chi cerchi di accogliere sotto la tua protezione?`');
         checkUser(target);
-        if (global.db.data.users[target].s) return m.reply('`❌ Ha già un genitore.`');
+        if (global.db.data.users[target].s) return m.reply('`❌ Questa persona ha già un genitore.`');
         
         global.adoption_proposals = global.adoption_proposals || {};
         global.adoption_proposals[target] = { proposer: user, target: target, timeout: setTimeout(() => delete global.adoption_proposals[target], 60000) };
 
         const buttons = [
-            { buttonId: `${usedPrefix}accettaadozione`, buttonText: { displayText: 'Sì, papà/mamma 🍼' }, type: 1 },
-            { buttonId: `${usedPrefix}rifiuta`, buttonText: { displayText: 'No grazie ❌' }, type: 1 }
+            { buttonId: `${usedPrefix}accettaadozione`, buttonText: { displayText: 'Accetta la famiglia 🍼' }, type: 1 },
+            { buttonId: `${usedPrefix}rifiuta`, buttonText: { displayText: 'Resto solo ❌' }, type: 1 }
         ];
         return conn.sendMessage(m.chat, { 
-            text: `👶 *RICHIESTA ADOZIONE*\n\n@${user.split('@')[0]} vorrebbe adottarti @${target.split('@')[0]}.\n\n*Solo @${target.split('@')[0]} può rispondere.*`, 
-            buttons: buttons, 
-            headerType: 1, 
-            mentions: [user, target] 
+            text: `👶 *IL CALORE DI UNA FAMIGLIA*\n\n@${user.split('@')[0]} vorrebbe adottarti @${target.split('@')[0]}.\n\n*Solo @${target.split('@')[0]} può rispondere.*`, 
+            buttons: buttons, mentions: [user, target] 
         }, { quoted: m });
     }
 
     if (command === 'accettaadozione') {
         let prop = global.adoption_proposals[user];
-        if (!prop || user !== prop.target) return; // IGNORE: Se non è il figlio designato a cliccare
-
+        if (!prop || user !== prop.target) return;
         let genitore = prop.proposer;
         checkUser(genitore);
         global.db.data.users[genitore].p.push(user);
         global.db.data.users[user].s = genitore;
-        clearTimeout(prop.timeout);
-        delete global.adoption_proposals[user];
-        return m.reply(`🍼 @${user.split('@')[0]} è entrato ufficialmente nella dinastia!`, null, { mentions: [user] });
+        clearTimeout(prop.timeout); delete global.adoption_proposals[user];
+        return m.reply(`🍼 *Benvenuto a casa! @${user.split('@')[0]} è stato ufficialmente adottato. Una nuova alba per questa famiglia!* ✨`);
+    }
+
+    if (command === 'disereda') {
+        let target = m.mentionedJid[0] || (m.quoted ? m.quoted.sender : null);
+        if (!target) return m.reply('`⚠️ Chi deve essere allontanato dal focolare?`');
+        let u = global.db.data.users[user];
+        if (!u.p.includes(target)) return m.reply('`❌ Questo sangue non appartiene alla tua lista dei figli.`');
+        u.p = u.p.filter(id => id !== target);
+        global.db.data.users[target].s = null;
+        return m.reply(`🚫 *L'ALBERO È STATO RECISO...* \n\nCon un atto severo, @${target.split('@')[0]} è stato rimosso dalla dinastia.`, null, { mentions: [target] });
     }
 
     if (command === 'rifiuta') {
         if (global.marriage_proposals[user] && user === global.marriage_proposals[user].target) {
             delete global.marriage_proposals[user];
-            return m.reply('❌ Proposta rifiutata.');
+            return m.reply('💔 *La proposta è stata rifiutata. Un cuore rimane solitario...*');
         }
         if (global.adoption_proposals[user] && user === global.adoption_proposals[user].target) {
             delete global.adoption_proposals[user];
-            return m.reply('❌ Adozione rifiutata.');
+            return m.reply('🥀 *L\'invito è stato declinato. Il viaggio continua in solitudine.*');
         }
-    }
-
-    // --- RESET & ALTRI COMANDI ---
-    if (command === 'divorzia') {
-        let p = marriages[user];
-        if (!p) return m.reply('`⚠️ Non sei sposato.`');
-        delete marriages[user]; delete marriages[p];
-        saveMarriages(marriages);
-        return m.reply('💔 *Divorzio effettuato.*');
-    }
-
-    if (command === 'resetfamiglia' && isOwner) {
-        let target = m.mentionedJid[0] || (m.quoted ? m.quoted.sender : null);
-        if (!target) return m.reply('`⚠️ Chi vuoi purgare?`');
-        let p = marriages[target];
-        if (p) { delete marriages[target]; delete marriages[p]; saveMarriages(marriages); }
-        let u = global.db.data.users[target];
-        if (u) {
-            u.p.forEach(f => { if(global.db.data.users[f]) global.db.data.users[f].s = null });
-            if (u.s && global.db.data.users[u.s]) global.db.data.users[u.s].p = global.db.data.users[u.s].p.filter(id => id !== target);
-            u.p = []; u.s = null;
-        }
-        return m.reply('🧹 *Dinastia resettata.*');
     }
 }
 
-handler.help = ['albero', 'sposa', 'adotta', 'resetfamiglia']
+handler.help = ['albero', 'sposa', 'adotta', 'disereda', 'divorzia']
 handler.tags = ['famiglia']
-handler.command = /^(albero|famigliamia|sposa|accettasposa|accettaadozione|rifiuta|adotta|divorzia|resetfamiglia)$/i
+handler.command = /^(famiglia|albero|famigliamia|sposa|accettasposa|accettaadozione|rifiuta|adotta|divorzia|disereda)$/i
 
 export default handler
