@@ -1,12 +1,5 @@
 // Plug-in creato da elixir
-const locations = [
-    { name: "Parigi", img: "https://googleusercontent.com", hint: "La città dell'amore e della Torre Eiffel" },
-    { name: "Tokyo", img: "https://googleusercontent.com", hint: "Neon, sushi e il quartiere di Shibuya" },
-    { name: "New York", img: "https://googleusercontent.com", hint: "La città che non dorme mai, guarda i taxi gialli" },
-    { name: "Roma", img: "https://googleusercontent.com", hint: "Storia antica, Colosseo e ottima pasta" },
-    { name: "Londra", img: "https://googleusercontent.com", hint: "Big Ben, cabine telefoniche rosse e pioggia" },
-    { name: "Pisa", img: "https://googleusercontent.com", hint: "C'è una torre che sta per cadere..." }
-];
+import axios from 'axios'
 
 let handler = async (m, { conn, command }) => {
     conn.geoguesser = conn.geoguesser || {};
@@ -14,20 +7,23 @@ let handler = async (m, { conn, command }) => {
     if (command === 'geoguesser') {
         if (conn.geoguesser[m.chat]) return m.reply("`⚠️ Finisci prima la sfida precedente!`");
 
-        const target = locations[Math.floor(Math.random() * locations.length)];
+        // Lista di città iconiche per la ricerca
+        const cities = ["Roma", "Parigi", "New York", "Tokyo", "Londra", "Venezia", "Berlino", "Barcellona", "Sidney", "Dubai"];
+        const selected = cities[Math.floor(Math.random() * cities.length)];
         
+        // Usiamo l'URL di Unsplash che genera una foto casuale basata sulla città
+        const imgUrl = `https://unsplash.com{selected},city,landscape`;
+
         conn.geoguesser[m.chat] = {
-            answer: target.name.toLowerCase(),
-            hint: target.hint,
+            answer: selected.toLowerCase(),
             startTime: Date.now()
         };
 
-        let caption = `🌍 *GEOGUESSER - WORLD CHALLENGE* 🌍\n\n`
-        caption += `Dove è stata scattata questa foto di Street View?\n`
-        caption += `💡 *Indizio:* ${target.hint}\n\n`
-        caption += `⏱️ Rispondi col nome della città entro 60 secondi!`
+        let caption = `🌍 *GEOGUESSER ONLINE* 🌍\n\n`
+        caption += `Riconosci questa splendida città?\n`
+        caption += `⏱️ Scrivi il nome della città entro 60 secondi!`
 
-        return conn.sendMessage(m.chat, { image: { url: target.img }, caption }, { quoted: m });
+        return conn.sendMessage(m.chat, { image: { url: imgUrl }, caption }, { quoted: m });
     }
 }
 
@@ -35,15 +31,16 @@ handler.before = async (m) => {
     if (!m.text || !global.conn.geoguesser || !global.conn.geoguesser[m.chat]) return;
     let game = global.conn.geoguesser[m.chat];
 
+    // Controllo tempo
     if (Date.now() - game.startTime > 60000) {
         delete global.conn.geoguesser[m.chat];
-        return m.reply(`⏱️ *Tempo scaduto!* La risposta era *${game.answer.toUpperCase()}*.`);
+        return m.reply(`⏱️ *Tempo scaduto!* Era *${game.answer.toUpperCase()}*.`);
     }
 
     let input = m.text.toLowerCase().trim();
     if (input === game.answer) {
         delete global.conn.geoguesser[m.chat];
-        return m.reply(`🎉 *VITTORIA!* Hai indovinato: *${input.toUpperCase()}*!`);
+        return m.reply(`🎉 *VITTORIA!* Hai indovinato, era proprio *${input.toUpperCase()}*!`);
     }
 }
 
