@@ -1,29 +1,36 @@
 // Plug-in creato da elixir
-import axios from 'axios'
+const database = [
+    { city: "Parigi", img: "https://wikimedia.org" },
+    { city: "Roma", img: "https://wikimedia.org" },
+    { city: "Londra", img: "https://wikimedia.org" },
+    { city: "New York", img: "https://wikimedia.org" },
+    { city: "Pisa", img: "https://wikimedia.org" },
+    { city: "Tokyo", img: "https://wikimedia.org" },
+    { city: "Venezia", img: "https://wikimedia.org" }
+];
 
 let handler = async (m, { conn, command }) => {
     conn.geoguesser = conn.geoguesser || {};
 
     if (command === 'geoguesser') {
-        if (conn.geoguesser[m.chat]) return m.reply("`⚠️ Finisci prima la sfida precedente!`");
+        if (conn.geoguesser[m.chat]) return m.reply("`⚠️ Hai già una sfida attiva!`");
 
-        // Lista di città iconiche per la ricerca
-        const cities = ["Roma", "Parigi", "New York", "Tokyo", "Londra", "Venezia", "Berlino", "Barcellona", "Sidney", "Dubai"];
-        const selected = cities[Math.floor(Math.random() * cities.length)];
+        const target = database[Math.floor(Math.random() * database.length)];
         
-        // Usiamo l'URL di Unsplash che genera una foto casuale basata sulla città
-        const imgUrl = `https://unsplash.com{selected},city,landscape`;
-
         conn.geoguesser[m.chat] = {
-            answer: selected.toLowerCase(),
+            answer: target.city.toLowerCase(),
             startTime: Date.now()
         };
 
-        let caption = `🌍 *GEOGUESSER ONLINE* 🌍\n\n`
-        caption += `Riconosci questa splendida città?\n`
-        caption += `⏱️ Scrivi il nome della città entro 60 secondi!`
-
-        return conn.sendMessage(m.chat, { image: { url: imgUrl }, caption }, { quoted: m });
+        try {
+            await conn.sendMessage(m.chat, { 
+                image: { url: target.img }, 
+                caption: `🌍 *GEOGUESSER: IL MONDO* 🌍\n\nIn quale città ci troviamo?\n⏱️ Rispondi entro 60 secondi!` 
+            }, { quoted: m });
+        } catch (e) {
+            delete conn.geoguesser[m.chat];
+            return m.reply("`❌ Errore nel caricamento dell'immagine. Riprova.`");
+        }
     }
 }
 
@@ -31,21 +38,19 @@ handler.before = async (m) => {
     if (!m.text || !global.conn.geoguesser || !global.conn.geoguesser[m.chat]) return;
     let game = global.conn.geoguesser[m.chat];
 
-    // Controllo tempo
     if (Date.now() - game.startTime > 60000) {
         delete global.conn.geoguesser[m.chat];
-        return m.reply(`⏱️ *Tempo scaduto!* Era *${game.answer.toUpperCase()}*.`);
+        return m.reply(`⏱️ *Tempo scaduto!* La risposta era *${game.answer.toUpperCase()}*.`);
     }
 
-    let input = m.text.toLowerCase().trim();
-    if (input === game.answer) {
+    if (m.text.toLowerCase().trim() === game.answer) {
         delete global.conn.geoguesser[m.chat];
-        return m.reply(`🎉 *VITTORIA!* Hai indovinato, era proprio *${input.toUpperCase()}*!`);
+        return m.reply(`🎉 *Esatto!* Era proprio *${game.answer.toUpperCase()}*!`);
     }
 }
 
-handler.help = ['geoguesser']
-handler.tags = ['game']
-handler.command = /^(geoguesser)$/i
+handler.help = ['geoguesser'];
+handler.tags = ['game'];
+handler.command = /^(geoguesser)$/i;
 
-export default handler
+export default handler;
