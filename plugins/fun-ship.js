@@ -18,7 +18,7 @@ let handler = async (m, { conn, text }) => {
     else commento = "🚫 Meglio lasciar perdere 😂"
 
     let shipMsg = `
-   *─── 「 💞 sʜɪᴘ ᴍᴇᴛᴇʀ 」 ───*
+   *─── 「 💞 sʜɪᴘ ᴍᴇᴛᴇʀ 」 ────*
 
   💌 *@${user1.split('@')[0]}*
   ➕
@@ -27,7 +27,7 @@ let handler = async (m, { conn, text }) => {
   📊 *ᴄᴏᴍᴘᴀᴛɪʙɪʟɪᴛà:* \`${percentuale}%\`
   ${commento}
 
-   *──────────────────────────*
+   *────────────────────────*
 `.trim()
 
     await conn.sendMessage(m.chat, { 
