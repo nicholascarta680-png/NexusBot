@@ -379,6 +379,10 @@ if (!normalizedSender) return;
     firstTime: Date.now(),
     spam: 0,
 
+    // --- Variabili Famiglia (Elixir Tree) ---
+    p: [],               // Prole: Lista dei JID dei figli adottati
+    s: null,             // Senior: JID del genitore che ti ha adottato
+
     // --- Integrazione Nuove Variabili Elixir ---
     properties: [],      // Lista case, ville, business
     vehicles: [],        // Lista auto, yacht, jet
