@@ -1,17 +1,17 @@
 // Plug-in creato da elixir
 let handler = async (m, { conn, participants }) => {
     const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-   
+  
     const victim = participants[Math.floor(Math.random() * participants.length)].id;
     const victimMention = `@${victim.split('@')[0]}`;
-    
+   
     await conn.sendMessage(m.chat, {
         text: "🚨 *ALLERTA SISTEMA* 🚨\n\n" +
               "☢️ Protocollo Quantum avviato dall'operatore.\n" +
               "🔍 Ricerca di un soggetto compatibile nel gruppo..."
     }, { quoted: m });
 
-    await delay(2000);
+    await delay(1800);
     await conn.sendMessage(m.chat, {
         text: `🎯 *TARGET ACQUISITO*\n\n` +
               `👤 Soggetto individuato: ${victimMention}\n` +
@@ -19,7 +19,7 @@ let handler = async (m, { conn, participants }) => {
         mentions: [victim]
     });
 
-    await delay(2000);
+    await delay(1800);
     await conn.sendMessage(m.chat, {
         text: `🧬 *INIEZIONE IN CORSO*\n\n` +
               `☣️ Alterazione del codice genetico di ${victimMention}...\n` +
@@ -28,114 +28,115 @@ let handler = async (m, { conn, participants }) => {
     });
 
     await delay(2000);
-   
-    const scherzi = [
-        `${victimMention} è una patetica delusione umana. Un errore della natura che respira solo per far soffrire chi gli sta intorno.`,
+  
+    const trasformazioni = [
+        `${victimMention} si è trasformato in uno **Spermatozoo con depressione cronica**. Nuota da anni ma non è mai arrivato all'ovulo.`,
 
-        `${victimMention} è un fallimento genetico. Tua madre avrebbe dovuto ingoiarti e risparmiarci questa vergogna.`,
+        `${victimMention} è mutato in un **Tampax usato con coscienza**. Galleggia nel water e riflette sulla sua vita di merda.`,
 
-        `${victimMention} è un pezzo di merda ambulante. Nessuno ti vuole bene, ti sopportano solo per pietà.`,
+        `${victimMention} è diventato un **Cesso chimico da festival di 3 giorni**. Pieno di merda, caldo e puzzolente.`,
 
-        `${victimMention} non vale nemmeno la saliva per sputarci sopra. Un essere inutile e vuoto.`,
+        `${victimMention} si è evoluto in un **Profilattico bucato bipolare**. Promette sicurezza e poi delude tutti.`,
 
-        `${victimMention} ha il QI di una scarpa e la personalità di un preservativo usato.`,
+        `${victimMention} è ora un **Moscerino con ambizioni da drago**. Volteggia intorno alla merda credendosi importante.`,
 
-        `${victimMention} è la puttana del gruppo. Tutti ti usano e poi ti buttano via come uno straccio.`,
+        `${victimMention} mutazione completata: **Calzino spaiato che vive dietro la lavatrice**. Solo, bagnato e dimenticato.`,
 
-        `${victimMention} è un aborto vivente. La tua esistenza è un insulto per l’umanità.`,
+        `${victimMention} è diventato un **Pene flaccido con crisi esistenziali**. Prova a tirarsi su ma ricade sempre.`,
 
-        `${victimMention} è così brutto/a che quando piangi le lacrime ti girano intorno alla faccia.`,
+        `${victimMention} si è trasformato in **Diarrhea senziente**. Esce quando nessuno la vuole e fa discorsi profondi.`,
 
-        `${victimMention} è irrilevante, noioso/a e una perdita di ossigeno. Scompari.`,
+        `${victimMention} ora è un **Buco del culo parlante**. Dice solo stronzate e puzza tremendamente.`,
 
-        `${victimMention} è la prova che Dio a volte sbaglia di brutto.`,
+        `${victimMention} è mutato in un **Feto alieno abortito che suona il violino**. Tragico e patetico.`,
 
-        `${victimMention} hai la faccia che sembra un incidente tra un maiale e un cassonetto.`,
+        `${victimMention} si è trasformato in **WiFi di McDonald’s**. Tutti ti usano 5 minuti e poi ti mollano.`,
 
-        `${victimMention} sei così inutile che se fossi un virus ti avrebbero già estinto.`,
+        `${victimMention} è diventato uno **Scarafaggio con OnlyFans**. Nessuno si abbona ma continua a postare.`,
 
-        `${victimMention} tua madre piange ogni notte per aver partorito una cosa del genere.`,
+        `${victimMention} mutazione assurda: **Nuvola di peti accumulati da 10 anni**. Silenziosa ma devastante.`,
 
-        `${victimMention} sei vuoto/a dentro come la tua testa. Solo aria fritta e delusioni.`,
+        `${victimMention} è ora un **Vibratore con batteria scarica**. Delude tutte al momento clou.`,
 
-        `${victimMention} sei la ragione per cui alcuni padri scappano dopo il parto.`,
+        `${victimMention} si è evoluto in un **Bidone della spazzatura con ansia**. Pieno di merda ma finge di essere utile.`,
 
-        `${victimMention} hai il carisma di una vongola morta e l’intelligenza di un sasso.`,
+        `${victimMention} è diventato **L'ombra di qualcuno di più figo**. Esiste solo quando c'è luce.`,
 
-        `${victimMention} sei così brutto/a che ti guardano solo per pietà o per ridere.`,
+        `${victimMention} mutato in **Dentiera di nonno con Alzheimer**. Sbatti a vuoto e nessuno ti vuole.`,
 
-        `${victimMention} sei un rifiuto della società, un errore che cammina.`,
+        `${victimMention} è ora una **Busta di plastica nel Pacifico**. Galleggi da anni senza uno scopo.`,
 
-        `${victimMention} nessuno ti amerà mai davvero, sei troppo tossico/a e patetico/a.`,
+        `${victimMention} si è trasformato in **Forfora parlante**. Cade sempre nei momenti peggiori.`,
 
-        `${victimMention} fai schifo in tutto: faccia, carattere, intelligenza e vita.`,
+        `${victimMention} è diventato un **Preservativo gonfiato con elio**. Sembra grosso ma è vuoto dentro.`,
 
-        `${victimMention} sei come la diarrea: esci quando non ti vuole nessuno.`,
+        `${victimMention} mutazione completata: **Piede con fungo che canta neomelodico**. Puzza e dà fastidio a tutti.`,
 
-        `${victimMention} la tua vita è un meme triste che nessuno salva.`,
+        `${victimMention} è ora un **Kebab caduto per terra alle 3 di notte**. Sporco, calpestato e ancora mangiabile.`,
 
-        `${victimMention} sei nato/a per deludere chiunque abbia la sfortuna di conoscerti.`,
+        `${victimMention} si è trasformato in **Ascella sudata di ciclista**. Puzza da morire e nessuno ti sopporta.`,
 
-        `${victimMention} hai meno valore di un profilattico scaduto.`,
+        `${victimMention} è diventato un **Capello incastrato nello scarico**. Ostruisci tutto e fai schifo.`,
 
-        `${victimMention} sei il motivo per cui l’adozione dovrebbe essere retroattiva.`,
+        `${victimMention} mutato in **Pallina di polvere sotto il letto**. Esisti ma nessuno ti nota.`,
 
-        `${victimMention} sei brutto/a fuori quanto marcio/a dentro.`,
+        `${victimMention} è ora un **Leccalecca raccolto da terra**. Appiccicoso, sporco e pieno di batteri.`,
 
-        `${victimMention} la tua personalità fa vomitare anche i cani randagi.`,
+        `${victimMention} si è evoluto in un **Gabinetto dell’autogrill**. Nessuno ti pulisce ma tutti ti usano.`,
 
-        `${victimMention} sei un fallimento ambulante con le gambe.`,
+        `${victimMention} è diventato **Un virus di WhatsApp del 2012**. Nessuno ti vuole più ma continui a girare.`,
 
-        `${victimMention} ti guardano e pensano: "meno male che i preservativi esistono".`,
+        `${victimMention} mutazione: **Mutanda ingiallita di 7 giorni**. Puzzi e nessuno ti tocca.`,
 
-        `${victimMention} sei così inutile che nemmeno l’inferno ti vuole.`,
+        `${victimMention} è ora un **Telecomando senza batterie**. Inutile e sempre nel posto sbagliato.`,
 
-        `${victimMention} hai la profondità emotiva di una pozzanghera.`,
+        `${victimMention} si è trasformato in **Cacca di piccione su una macchina nuova**. Rovini tutto quello che tocchi.`,
 
-        `${victimMention} sei patetico/a, solo e disperato/a dentro.`,
+        `${victimMention} è diventato un **Account fake di Instagram**. Esisti solo per prendere in giro.`,
 
-        `${victimMention} la tua esistenza è una battuta di cattivo gusto.`,
+        `${victimMention} mutato in **Lattina schiacciata sul ciglio della strada**. Vuoto dentro e calpestato.`,
 
-        `${victimMention} sei la versione umana di un errore di sistema.`,
+        `${victimMention} è ora un **Succhiotto usato**. Sporco, appiccicoso e pieno di saliva altrui.`,
 
-        `${victimMention} nessuno sentirà la tua mancanza quando sparirai.`,
+        `${victimMention} si è evoluto in **Piatto lavato male al ristorante**. Sembri pulito ma fai schifo.`,
 
-        `${victimMention} sei un cumulo di insicurezze e bruttezza.`,
+        `${victimMention} è diventato un **Cuscino di saliva secca**. Nessuno vuole dormirci sopra.`,
 
-        `${victimMention} fai pena, rabbia e schifo allo stesso tempo.`,
+        `${victimMention} mutazione estrema: **Protozoo con master in fallimento**. Nuoti nel cesso della vita.`,
 
-        `${victimMention} sei il tipo di persona che giustifica l’eutanasia.`,
+        `${victimMention} è ora un **Biscotto caduto nella fessura del divano**. Vecchio, sbriciolato e dimenticato.`,
 
-        `${victimMention} hai la faccia che sembra pestata da un camion.`,
+        `${victimMention} si è trasformato in **Odore di piedi in ascensore**. Impossibile da ignorare.`,
 
-        `${victimMention} sei un essere umano di serie Z, scarto di fabbrica.`,
+        `${victimMention} è diventato un **Filtro di sigaretta masticato**. Sporco e masticato da chissà chi.`,
 
-        `${victimMention} tua madre si vergogna ogni volta che ti guarda.`,
+        `${victimMention} mutato in **Pannolino pieno dopo 12 ore**. Pesante, puzzolente e da buttare.`,
 
-        `${victimMention} sei vuoto/a, inutile e profondamente deludente.`,
+        `${victimMention} è ora un **Commento hate sotto un video**. Esisti solo per dare fastidio.`,
 
-        `${victimMention} sei la prova vivente che si può fallire anche solo esistendo.`,
+        `${victimMention} si è evoluto in **Gomma da masticare sotto la sedia**. Appiccicoso e schifoso.`,
 
-        `${victimMention} ti odio tutti ma nessuno te lo dice in faccia.`,
+        `${victimMention} è diventato un **Profilo Tinder con 0 match**. Esisti ma nessuno ti vuole.`,
 
-        `${victimMention} sei così falso/a che nemmeno il tuo riflesso ti sopporta.`,
+        `${victimMention} mutazione: **Mosca che ronza intorno alla merda**. Attratto dal peggio.`,
 
-        `${victimMention} la tua vita è un fallimento continuo con la colonna sonora triste.`,
+        `${victimMention} è ora un **Calcio di rigore sbagliato ai Mondiali**. Delusione eterna.`,
 
-        `${victimMention} sei un tossico emotivo che rovina tutto quello che tocca.`,
+        `${victimMention} si è trasformato in **Sedia rotta dell’Ikea**. Sembri utile ma crolli sempre.`,
 
-        `${victimMention} non vali nemmeno il tempo che ci vuole per insultarti.`,
+        `${victimMention} è diventato un **Messaggio vocale di 4 minuti**. Nessuno lo ascolta fino alla fine.`,
 
-        `${victimMention} sei una merda di persona e lo rimarrai per sempre.`
+        `${victimMention} mutato in **Tappo di champagne esploso**. Un botto e poi più nulla di utile.`
     ];
 
-    const scherzoScelto = scherzi[Math.floor(Math.random() * scherzi.length)];
-    
+    const chosen = trasformazioni[Math.floor(Math.random() * trasformazioni.length)];
+   
     const finalOutput = `💥 *PROTOCOLLO QUANTUM COMPLETATO* 💥\n\n` +
                         `💀 *Vittima:* ${victimMention}\n` +
                         `───────────────────────\n` +
-                        `${scherzoScelto}`;
-    
+                        `${chosen}\n\n` +
+                        `⏳ L'effetto dura 30 minuti. Goditi la tua nuova forma patetica, essere inutile.`;
+   
     await conn.sendMessage(m.chat, {
         text: finalOutput,
         mentions: [victim]
