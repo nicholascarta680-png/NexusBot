@@ -1,35 +1,35 @@
+// Gestione stato gruppo: .antisabotaggio e .riattiva
 let handler = async (m, { conn, command, isOwner }) => {
     if (!isOwner) return m.reply("❌ Solo il proprietario può usare questo comando.")
+    if (!m.isGroup) return m.reply("❌ Questo comando funziona solo nei gruppi.")
 
     let chatId = m.chat
-    if (!global.db.data.chats[chatId]) global.db.data.chats[chatId] = {}
+    if (!global.db.data.chats[chatId]) {
+        global.db.data.chats[chatId] = {}
+    }
+    let chat = global.db.data.chats[chatId]
 
     if (command === 'antisabotaggio') {
-        global.db.data.chats[chatId].safetyMode = true
-        return m.reply("🛡️ **PROTOCOLLO DI SICUREZZA ATTIVATO**")
+        chat.antinuke = true
+        await global.db.write()
+        return m.reply("🛡️ **PROTOCOLLO ANTINUKE ATTIVATO**\n\nIl bot monitorerà e bloccherà modifiche non autorizzate al gruppo.\nUsa .riattiva per disattivare.")
     }
 
     if (command === 'riattiva') {
-        global.db.data.chats[chatId].safetyMode = false
-        return m.reply("✅ **MODALITÀ STANDARD RIPRISTINATA**")
-    }
-}
-
-handler.before = async function (m, { isOwner }) {
-    if (!m.isGroup) return false
-    const chat = global.db.data.chats[m.chat]
-
-    if (chat?.safetyMode) {
-        if ([21, 28, 29, 30].includes(m.messageStubType)) return false 
-        if (isOwner) return false
-
-        let body = m.text ? m.text.trim() : ''
-        let isCommand = /^[.!#/]/.test(body)
-        if (isCommand) return true 
+        chat.antinuke = false
+        // Riapre il gruppo (tutti possono scrivere) e resetta lo stato
+        try {
+            await conn.groupSettingUpdate(m.chat, 'not_announcement')
+        } catch (e) {
+            console.error('[ERRORE] Impossibile riaprire il gruppo:', e)
+        }
+        await global.db.write()
+        return m.reply("✅ **MODALITÀ STANDARD RIPRISTINATA**\n\nAntinuke disattivato, gruppo riaperto. Ora tutti possono modificare il gruppo liberamente.")
     }
 }
 
 handler.command = /^(antisabotaggio|riattiva)$/i
 handler.group = true
+handler.owner = true
 
 export default handler
