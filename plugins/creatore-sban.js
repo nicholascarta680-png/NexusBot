@@ -18,6 +18,7 @@ const handler = async (m, { conn, args, text, usedPrefix, command }) => {
     if (db[user]) {
         db[user].banned = false;
         db[user].banRazon = '';
+        await global.db.write();
         const nametag = await conn.getName(user);
         const nn = await conn.getName(m.sender);
         await conn.reply(m.chat, 
