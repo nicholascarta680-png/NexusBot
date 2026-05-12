@@ -1,6 +1,4 @@
 // Plug-in creato da elixir
-// plugins/fun-protocollo.js
-
 let handler = async (m, { conn, participants }) => {
     const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     
@@ -9,7 +7,7 @@ let handler = async (m, { conn, participants }) => {
     const victimMention = `@${victim.split('@')[0]}`;
 
     // 1. Messaggio di avvio
-    let currentMessage = await conn.sendMessage(m.chat, { 
+    await conn.sendMessage(m.chat, { 
         text: "🚨 *ALLERTA SISTEMA* 🚨\n\n" +
               "☢️ Protocollo Quantum avviato dall'operatore.\n" +
               "🔍 Ricerca di un soggetto compatibile nel gruppo..." 
@@ -21,7 +19,6 @@ let handler = async (m, { conn, participants }) => {
         text: `🎯 *TARGET ACQUISITO*\n\n` +
               `👤 Soggetto individuato: ${victimMention}\n` +
               `⚡ Caricamento sovraccarico neurale... [🔋 35%]`,
-        edit: currentMessage.key,
         mentions: [victim]
     });
 
@@ -31,7 +28,6 @@ let handler = async (m, { conn, participants }) => {
         text: `🧬 *INIEZIONE IN CORSO*\n\n` +
               `☣️ Alterazione del codice genetico di ${victimMention}...\n` +
               `⚙️ Modifica permessi cerebrali... [🔋 70%]`,
-        edit: currentMessage.key,
         mentions: [victim]
     });
 
@@ -40,7 +36,7 @@ let handler = async (m, { conn, participants }) => {
     
     const scherzi = [
         `Trasformazione completata. ${victimMention} è ora ufficialmente un *Criceto Spaziale* 🐹. Per i prossimi 10 minuti può rispondere solo con 'Squitt!'`,
-        `Bypass riuscito. Ho appena hackerato lo smartphone di ${victimMention}. Ho ordinato 45 pizze all'ananas a suo nome 🍍🍕. Prego.`,
+        `Bypass rushed. Ho appena hackerato lo smartphone di ${victimMention}. Ho ordinato 45 pizze all'ananas a suo nome 🍍🍕. Prego.`,
         `Mutazione eseguita. ${victimMention} è stato declassato a *Membro Inutile del Gruppo* 🗑️. Ogni sua opinione da questo momento è legalmente non valida.`,
         `Esplosione quantistica! ${victimMention} è stato teletrasportato in una dimensione parallela 🌌. Se invia messaggi nelle prossime ore, fate finta di non vederlo.`
     ];
@@ -53,7 +49,6 @@ let handler = async (m, { conn, participants }) => {
 
     await conn.sendMessage(m.chat, {
         text: finalOutput,
-        edit: currentMessage.key,
         mentions: [victim]
     });
 };
