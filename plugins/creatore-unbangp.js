@@ -18,7 +18,7 @@ let handler = async (m, { conn, args, isOwner }) => {
     }
 
     let chat = global.db.data.chats[m.chat]
-    if (!chat.banned) {
+    if (!chat.isBanned) {
         let errorMsg = `*❌ ERRORE COMANDO*\n`
         errorMsg += `━━━━━━━━━━━━━━━━\n\n`
         errorMsg += `*⚠️ Motivo:*\n`
@@ -27,7 +27,8 @@ let handler = async (m, { conn, args, isOwner }) => {
         return m.reply(errorMsg)
     }
 
-    chat.banned = false
+    chat.isBanned = false
+    await global.db.write()
     m.reply(`*✅ GRUPPO SBANNATO*
 ━━━━━━━━━━━━━━━━
 
