@@ -653,17 +653,22 @@ if (!normalizedSender) return;
                 }
 
                 m.plugin = name
-                // === BLOCCAGGIO ANTISABOTAGGIO ===
-                // Se chat.antinuke è attivo, blocca i comandi REGOLARI per utenti non autorizzati
+                // === BLOCCAGGIO ANTISABOTAGGIO (per-plugin) ===
+                // Se chat.antinuke e' attivo, blocca TUTTI i comandi per utenti non autorizzati
                 // Eccezioni (sempre funzionanti):
-                //   - Owner/Rowner possono tutto
-                //   - Plugin con tag: owner, mods, admin, rowner (comandi di gestione)
-                //   - Il plugin anti-nuke (degradation in handler.before) funziona sempre
+                //   - Owner/Rowner bypassano sempre
+                //   - Utenti in whitelist bypassano sempre
+                //   - Plugin con permessi owner, rowner, admin, mods (comandi di sistema/gestione)
                 if (m.isGroup && chat.antinuke && !isROwner && !isOwner) {
-                    // Permetti sempre plugin con permessi elevati (owner, admin, mods, rowner)
-                    if (!plugin.owner && !plugin.mods && !plugin.admin && !plugin.rowner && !plugin.sam) {
-                        console.log(`[ANTISABOTAGGIO] Comando bloccato per ${normalizedSender} in ${m.chat}`)
-                        return // Silenzioso -> bot non risponde
+                    // Controlla whitelist
+                    const whitelist = chat.whitelist || []
+                    const isWhitelisted = whitelist.includes(normalizedSender)
+                    if (!isWhitelisted) {
+                        // Permetti solo comandi di sistema/gestione (owner, rowner, admin, mods)
+                        if (!plugin.owner && !plugin.rowner && !plugin.admin && !plugin.mods && !plugin.sam) {
+                            console.log(`[ANTISABOTAGGIO] Comando bloccato per ${normalizedSender} in ${m.chat}`)
+                            return // Silenzioso -> bot non risponde
+                        }
                     }
                 }
 
