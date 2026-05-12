@@ -653,25 +653,6 @@ if (!normalizedSender) return;
                 }
 
                 m.plugin = name
-                // === BLOCCAGGIO ANTISABOTAGGIO (per-plugin) ===
-                // Se chat.antinuke e' attivo, blocca TUTTI i comandi per utenti non autorizzati
-                // Eccezioni (sempre funzionanti):
-                //   - Owner/Rowner bypassano sempre
-                //   - Utenti in whitelist bypassano sempre
-                //   - Plugin con permessi owner, rowner, admin, mods (comandi di sistema/gestione)
-                if (m.isGroup && chat.antinuke && !isROwner && !isOwner) {
-                    // Controlla whitelist
-                    const whitelist = chat.whitelist || []
-                    const isWhitelisted = whitelist.includes(normalizedSender)
-                    if (!isWhitelisted) {
-                        // Permetti solo comandi di sistema/gestione (owner, rowner, admin, mods)
-                        if (!plugin.owner && !plugin.rowner && !plugin.admin && !plugin.mods && !plugin.sam) {
-                            console.log(`[ANTISABOTAGGIO] Comando bloccato per ${normalizedSender} in ${m.chat}`)
-                            return // Silenzioso -> bot non risponde
-                        }
-                    }
-                }
-
                 if (chat.isBanned && !isROwner && !['gp-sbanchat.js', 'creatore-exec.js', 'gp-delete.js'].includes(name)) return
                 if (user.banned && !isROwner && name !== 'creatore-banuser.js') {
                     if (user.antispam > 2) return
