@@ -445,6 +445,18 @@ if (!normalizedSender) return;
         let modsList = global.db.data.chats[m.chat]?.moderatori || []
         let isMod = modsList.includes(normalizedSender)
 
+        // === BLOCCAGGIO GLOBALE: Utente o Chat/Gruppo bannato ===
+        // Blocca immediatamente qualsiasi comando se l'utente o la chat sono bannati
+        // (eccetto per owner/rowner che possono usare i comandi di sban)
+        if (user.banned && !isROwner && !isOwner) {
+            console.log(`[BLOCCATO] Utente bannato ${normalizedSender} bloccato globalmente.`)
+            return
+        }
+        if (chat.isBanned && !isROwner && !isOwner) {
+            console.log(`[BLOCCATO] Chat bannata ${m.chat} - comando ignorato per ${normalizedSender}`)
+            return
+        }
+
         if (m.isGroup) {
             if (!groupMetadata) {
                 groupMetadata = await fetchGroupMetadataWithRetry(this, m.chat)
