@@ -66,6 +66,6 @@ let handler = async (m, { conn, usedPrefix, command }) => {
 
 handler.help = ['cartaidentita']
 handler.tags = ['profilo']
-handler.command = /^(cartaidentita|identita|id)$/i
+handler.command = /^(cartaidentita|identita|idp)$/i
 
 export default handler
