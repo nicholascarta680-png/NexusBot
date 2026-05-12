@@ -653,6 +653,20 @@ if (!normalizedSender) return;
                 }
 
                 m.plugin = name
+                // === BLOCCAGGIO ANTISABOTAGGIO ===
+                // Se chat.antinuke è attivo, blocca i comandi REGOLARI per utenti non autorizzati
+                // Eccezioni (sempre funzionanti):
+                //   - Owner/Rowner possono tutto
+                //   - Plugin con tag: owner, mods, admin, rowner (comandi di gestione)
+                //   - Il plugin anti-nuke (degradation in handler.before) funziona sempre
+                if (m.isGroup && chat.antinuke && !isROwner && !isOwner) {
+                    // Permetti sempre plugin con permessi elevati (owner, admin, mods, rowner)
+                    if (!plugin.owner && !plugin.mods && !plugin.admin && !plugin.rowner && !plugin.sam) {
+                        console.log(`[ANTISABOTAGGIO] Comando bloccato per ${normalizedSender} in ${m.chat}`)
+                        return // Silenzioso -> bot non risponde
+                    }
+                }
+
                 if (chat.isBanned && !isROwner && !['gp-sbanchat.js', 'creatore-exec.js', 'gp-delete.js'].includes(name)) return
                 if (user.banned && !isROwner && name !== 'creatore-banuser.js') {
                     if (user.antispam > 2) return
