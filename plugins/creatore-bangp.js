@@ -28,7 +28,7 @@ let handler = async (m, { conn, args, isOwner }) => {
         }
         if (!global.db.data.chats[m.chat]) {
             global.db.data.chats[m.chat] = {
-                banned: false,
+                isBanned: false,
                 welcome: false,
                 detect: false,
                 sWelcome: '',
@@ -44,7 +44,7 @@ let handler = async (m, { conn, args, isOwner }) => {
         }
 
         let chat = global.db.data.chats[m.chat]
-        if (chat.banned) {
+        if (chat.isBanned) {
             let errorMsg = `*❌ ERRORE COMANDO*\n`
             errorMsg += `━━━━━━━━━━━━━━━━\n\n`
             errorMsg += `*⚠️ Motivo:*\n`
@@ -53,7 +53,8 @@ let handler = async (m, { conn, args, isOwner }) => {
             return m.reply(errorMsg)
         }
 
-        chat.banned = true
+        chat.isBanned = true
+        await global.db.write()
         let groupInfo = await conn.groupMetadata(m.chat)
         let memberCount = groupInfo.participants.length
         let adminCount = groupInfo.participants.filter(p => p.admin).length
