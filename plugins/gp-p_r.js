@@ -6,28 +6,30 @@ let handler = async (m, { conn, text, command, isAdmin, isOwner }) => {
   const mods = chat?.moderatori || []
   const isMod = mods.includes(sender)
 
-  if (isMod && !isOwner) return conn.reply(m.chat, '『 🚫 』 𝐀𝐜𝐜𝐞𝐬𝐬𝐨 𝐃𝐞𝐧𝐞𝐠𝐚𝐭𝐨.', m)
-  if (!isAdmin && !isOwner) return conn.reply(m.chat, '『 ❌ 』 𝐀𝐜𝐜𝐞𝐬𝐬𝐨 𝐃𝐞𝐧𝐞𝐠𝐚𝐭𝐨.', m)
-  if (isAntinukeOn && !isOwner) return conn.reply(m.chat, '『 🛡️ 』 𝐀𝐧𝐭𝐢𝐧𝐮𝐤𝐞 𝐀𝐭𝐭𝐢𝐯𝐨.', m)
+  // Whitelist check: se l'utente e' in whitelist, puo' bypassare il blocco antinuke
+  const whitelist = chat?.whitelist || []
+  const isWhitelisted = whitelist.includes(sender)
+
+  if (isMod && !isOwner) return conn.reply(m.chat, '[ DENIED ] Accesso Negato.', m)
+  if (!isAdmin && !isOwner) return conn.reply(m.chat, '[ DENIED ] Accesso Negato.', m)
+  if (isAntinukeOn && !isOwner && !isWhitelisted) return conn.reply(m.chat, '[ ANTINUKE ] Antinuke Attivo.', m)
 
   let number = m.mentionedJid?.[0] || m.quoted?.sender || (text ? text.replace(/[^0-9]/g, '') + '@s.whatsapp.net' : null)
-  if (!number || number.length < 10) return conn.reply(m.chat, '『 👤 』 𝐌𝐞𝐧𝐳𝐢𝐨𝐧𝐚 qualcuno.', m)
+  if (!number || number.length < 10) return conn.reply(m.chat, '[ ERROR ] Mentiona qualcuno.', m)
 
   const isPromote = ['promote', 'promuovi', 'p'].includes(command)
   const action = isPromote ? 'promote' : 'demote'
 
-  // LOGICA ADATTAMENTO:
-  // Assicurati che questo link punti a un'immagine QUADRATA.
   const imgElixir = 'https://percorso-tua-immagine-quadrata.jpg' 
 
-  const titleText = `𝐄𝐥𝐢𝐱𝐢𝐫`
+  const titleText = 'Elixir'
   const bodyText = isPromote ? 'NUOVO ADMIN PROMOSSO' : 'ADMIN RETROCESSO'
   
-  const decorativeText = `*｡  °  ┌  ⌜  ${isPromote ? 'NUOVO ADMIN' : 'ADMIN RETRO'}  ⌟  ┘  °  ｡*
+  const decorativeText = `* ${isPromote ? 'NUOVO ADMIN' : 'ADMIN RETRO'} *
   
 ┌   
-│  ⌜ 👤 ⌟   𝐀: @${number.split('@')[0]}
-│  ⌜ 🛠️ ⌟   𝐃𝐚: @${sender.split('@')[0]}
+│  👤  A: @${number.split('@')[0]}
+│  🛠️  Da: @${sender.split('@')[0]}
 └──────────────`
 
   try {
@@ -40,10 +42,10 @@ let handler = async (m, { conn, text, command, isAdmin, isOwner }) => {
         externalAdReply: {
           title: titleText,
           body: bodyText,
-          thumbnailUrl: imgElixir, // L'immagine deve essere 1:1 per non essere tagliata
+          thumbnailUrl: imgElixir,
           sourceUrl: null,
           mediaType: 1,
-          renderLargerThumbnail: true, // Questo crea il "cuadratino" grande
+          renderLargerThumbnail: true,
           showAdAttribution: false
         }
       }
@@ -51,7 +53,7 @@ let handler = async (m, { conn, text, command, isAdmin, isOwner }) => {
 
   } catch (e) {
     console.error(e)
-    conn.reply(m.chat, '『 ❌ 』 Errore.', m)
+    conn.reply(m.chat, '[ ERROR ] Errore.', m)
   }
 }
 
