@@ -9,11 +9,14 @@ let handler = async (m, { conn, text, command }) => {
 
   if (command === 'banuser') {
     users[who].banned = true;
-    conn.reply(m.chat, `✨ *L\'utente @${who.split('@')[0]} è stato bannato con successo.*`, fkontak, { mentions: [who] });
+    users[who].bannedReason = 'Bannato da owner';
+    conn.reply(m.chat, `✨ *L'utente @${who.split('@')[0]} è stato bannato con successo.*`, m, { mentions: [who] });
   } else if (command === 'unbanuser') {
     users[who].banned = false;
-    conn.reply(m.chat, `✨ *L\'utente @${who.split('@')[0]} è stato sbannato con successo.*`, fkontak, { mentions: [who] });
+    users[who].bannedReason = '';
+    conn.reply(m.chat, `✨ *L'utente @${who.split('@')[0]} è stato sbannato con successo.*`, m, { mentions: [who] });
   }
+  await global.db.write();
 };
 
 handler.help = ['banuser <@tag>', 'unbanuser <@tag>'];
