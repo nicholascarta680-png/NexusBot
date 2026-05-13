@@ -1,71 +1,43 @@
-const handler = async (m, { conn, text, participants, command }) => {
+import { generateWAMessageFromContent } from '@whiskeysockets/baileys'
+import * as fs from 'fs'
+
+let handler = async (m, { conn, text, participants, isOwner, isAdmin }) => {
   try {
-    const users = participants.map((u) => conn.decodeJid(u.id));
-    
-    if (m.quoted) {
-      let rawQuoted = m.message?.extendedTextMessage?.contextInfo?.quotedMessage;
-      
-      if (!rawQuoted) {
-        return await conn.sendMessage(m.chat, { forward: m.quoted, mentions: users }, { quoted: m });
-      }
-
-      let msgObj = JSON.parse(JSON.stringify(rawQuoted));
-      let mtype = Object.keys(msgObj)[0];
-      
-      if (['ephemeralMessage', 'viewOnceMessage', 'viewOnceMessageV2', 'documentWithCaptionMessage'].includes(mtype)) {
-        msgObj = msgObj[mtype].message;
-        mtype = Object.keys(msgObj)[0];
-      }
-      
-      if (mtype === 'conversation') {
-        msgObj = {
-          extendedTextMessage: {
-            text: text || msgObj.conversation,
-            contextInfo: { 
-              mentionedJid: users,
-              stanzaId: m.key.id,
-              participant: m.sender,
-              quotedMessage: m.message
-            }
-          }
-        };
-      } else {
-        let content = msgObj[mtype];
-        if (content) {
-          if (!content.contextInfo) content.contextInfo = {};
-          content.contextInfo.mentionedJid = users;
-          content.contextInfo.stanzaId = m.key.id;
-          content.contextInfo.participant = m.sender;
-          content.contextInfo.quotedMessage = m.message;
-          
-          if (text) {
-            if (content.caption !== undefined) content.caption = text;
-            else if (content.text !== undefined) content.text = text;
-          }
-        }
-      }
-      
-      await conn.relayMessage(m.chat, msgObj, {});
-      
-    } else if (text) {
-      await conn.sendMessage(m.chat, {
-        text: text,
-        mentions: users
-      }, { quoted: m });
-    } else {
-      return m.reply('`𐔌⚠️ ꒱` _Inserisci un testo o rispondi a un messaggio/media/sondaggio/evento._');
-    }
-    
+    let users = participants.map(u => conn.decodeJid(u.id))
+    let q = m.quoted ? m.quoted : m || m.text || m.sender
+    let c = m.quoted ? await m.getQuotedObj() : m.msg || m.text || m.sender
+    let msg = conn.cMod(m.chat, generateWAMessageFromContent(m.chat, { [m.quoted ? q.mtype : 'extendedTextMessage']: m.quoted ? c.message[q.mtype] : { text: '' || c }}, {}), text || q.text, conn.user.jid, { mentions: users })
+    await conn.relayMessage(m.chat, msg.message, { messageId: msg.key.id })
   } catch (e) {
-    console.error('Errore tag/hidetag:', e);
-    m.reply('`𐔌❌ ꒱` _Si è verificato un errore durante l\'inoltro del messaggio._');
+    console.error(e)
+
+    let users = participants.map(u => conn.decodeJid(u.id))
+    let quoted = m.quoted ? m.quoted : m
+    let mime = (quoted.msg || quoted).mimetype || ''
+    let isMedia = /image|video|sticker|audio/.test(mime)
+
+    if (isMedia && quoted.mtype === 'imageMessage') {
+      var mediax = await quoted.download?.()
+      conn.sendMessage(m.chat, { image: mediax, mentions: users, caption: text || quoted.text }, { quoted: m })
+    } else if (isMedia && quoted.mtype === 'videoMessage') {
+      var mediax = await quoted.download?.()
+      conn.sendMessage(m.chat, { video: mediax, mentions: users, mimetype: 'video/mp4', caption: text || quoted.text }, { quoted: m })
+    } else if (isMedia && quoted.mtype === 'audioMessage') {
+      var mediax = await quoted.download?.()
+      conn.sendMessage(m.chat, { audio: mediax, mentions: users, mimetype: 'audio/mp4', fileName: `Hidetag.mp3` }, { quoted: m })
+    } else if (isMedia && quoted.mtype === 'stickerMessage') {
+      var mediax = await quoted.download?.()
+      conn.sendMessage(m.chat, { sticker: mediax, mentions: users }, { quoted: m })
+    } else {
+      // Gestione di messaggi di testo normali
+      conn.sendMessage(m.chat, { text: text || quoted.text, mentions: users }, { quoted: m })
+    }
   }
-};
+}
 
-handler.help = ['hidetag', 'totag', 'tag'];
-handler.tags = ['gruppo', 'admin'];
-handler.command = /^(\.?hidetag|totag|tag)$/i;
-handler.admin = true;
-handler.group = true;
+handler.command = /^(hidetag|menziona|tag)$/i
+handler.group = true
+handler.admin = true
+handler.botAdmin = true
 
-export default handler;
+export default handler
