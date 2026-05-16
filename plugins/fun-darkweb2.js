@@ -1,5 +1,6 @@
 // Plug-in creato da elixir
 
+js
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 let handler = async (m, { conn, mentionedJid }) => {
@@ -17,8 +18,7 @@ let handler = async (m, { conn, mentionedJid }) => {
 │     LIVELLO VII — ACCESSO   │
 └─────────────────────────────┘
 
-⚠️ Tutto ciò che vedi è totalmente finto, VISIVO e creato esclusivamente per divertimento.
-Non esegue davvero hacking, accessi, tracciamenti o attività reali.
+Sistema di hacking simulato più avanzato.
 
 *Puoi usare i comandi sia taggando una persona che rispondendo ad un messaggio.*
 
@@ -107,9 +107,7 @@ Contiene screenshot di chat, messaggi non inviati e ricerche che non vorresti fa
 
 Inoltre, passi molto tempo a rileggere conversazioni vecchie di mesi.
 
-🜁 Tutte le tracce sono state cancellate dal sistema.
-
-⚠️ Simulazione VISIVA — nessun hacking reale.`,
+🜁 Tutte le tracce sono state cancellate dal sistema.`,
             mentions: [target]
         });
     }
@@ -141,13 +139,12 @@ Inoltre, passi molto tempo a rileggere conversazioni vecchie di mesi.
 `🌫️ *DOXXING TERMINATO*
 
 ${name} presenta un’immagine forte e sicura di sé sui social, ma in realtà ha un forte bisogno di approvazione esterna.
+
 Cambia spesso bio e foto alla ricerca della versione “perfetta” di sé.
 
 Punto debole principale: paura dell’abbandono.
 
-🜁 Dossier completato.
-
-⚠️ Contenuto finto e solo a scopo di divertimento.`,
+🜁 Dossier completato.`,
             mentions: [target]
         });
     }
@@ -179,13 +176,12 @@ Punto debole principale: paura dell’abbandono.
 `💥 *DATA BREACH COMPLETATO*
 
 Abbiamo estratto migliaia di messaggi di ${name}.
+
 Risulta che ha detto “ti amo” o “mi manchi” a più persone di quante voglia ammettere.
 
 Ci sono anche conversazioni che credeva fossero state cancellate.
 
-🜁 Il Darkweb ora possiede questi dati.
-
-⚠️ Simulazione puramente visiva.`,
+🜁 Il Darkweb ora possiede questi dati.`,
             mentions: [target]
         });
     }
@@ -208,9 +204,7 @@ ${name}, abbiamo materiale sufficiente per distruggere la tua immagine pubblica.
 
 Screenshot, messaggi privati, ricerche imbarazzanti e deepfake pronti.
 
-Vuoi davvero che tutto questo venga reso pubblico?
-
-⚠️ Tutto fake e solo per divertimento.`,
+Vuoi davvero che tutto questo venga reso pubblico?`,
             mentions: [target]
         });
     }
@@ -236,11 +230,10 @@ Vuoi davvero che tutto questo venga reso pubblico?
 `🌀 *DEEPFAKE GENERATO CON SUCCESSO*
 
 Abbiamo creato un video di ${name} che dice e fa cose estremamente compromettenti.
+
 Sembra assolutamente reale.
 
-Vuoi che venga distribuito nel Darkweb?
-
-⚠️ Simulazione VISIVA — nessun contenuto reale.`,
+Vuoi che venga distribuito nel Darkweb?`,
             mentions: [target]
         });
     }
@@ -261,9 +254,7 @@ Vuoi che venga distribuito nel Darkweb?
 
 Tutti i file, foto e chat di ${name} sono stati crittografati.
 
-Pagamento richiesto in Monero entro 48 ore, altrimenti i dati verranno pubblicati.
-
-⚠️ Tutto completamente finto e visivo.`,
+Pagamento richiesto in Monero entro 48 ore, altrimenti i dati verranno pubblicati.`,
             mentions: [target]
         });
     }
@@ -284,9 +275,7 @@ Pagamento richiesto in Monero entro 48 ore, altrimenti i dati verranno pubblicat
 
 ${name} ha cliccato sul link e inserito le sue credenziali.
 
-Accesso a tutti gli account acquisito (simulazione).
-
-⚠️ Nessun dato reale viene raccolto.`,
+Accesso a tutti gli account acquisito.`,
             mentions: [target]
         });
     }
@@ -309,9 +298,7 @@ ${name} è percepito come persona instabile, bisognosa di attenzioni e poco affi
 
 Rischio sociale: **Alto**
 
-Consigliato: stare lontani.
-
-⚠️ Report totalmente inventato per divertimento.`,
+Consigliato: stare lontani.`,
             mentions: [target]
         });
     }
@@ -341,9 +328,7 @@ Consigliato: stare lontani.
 
 "${msg}"
 
-— Ombra Sconosciuta • Livello VII
-
-⚠️ Messaggio anonimo simulato, solo VISIVO.`
+— Ombra Sconosciuta • Livello VII`
         });
     }
 };
