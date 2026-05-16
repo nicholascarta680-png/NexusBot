@@ -19,7 +19,7 @@ let handler = async (m, { conn, command, args, usedPrefix }) => {
     }
 
     // --- 1. COMANDO: DARKWEB (GUIDA E NEGOZIO) ---
-    if (command === 'darkweb' || command === 'negozio') {
+    if (command === 'darkwebb' || command === 'negozio') {
         let help = `ㅤ⋆｡˚『 ╭ \`🕵️ BENVENUTO NEL DARKWEB \` ╯ 』˚｡⋆\n╭\n`
         help += `│ 『 🌐 』 \`Info:\` Qui puoi comprare strumenti illegali per dominare l'economia del bot.\n`
         help += `│ 『 👮 』 \`Rischio:\` Ogni acquisto può essere tracciato. Se la Polizia ti becca, pagherai una multa del 150%!\n`
@@ -137,9 +137,9 @@ let handler = async (m, { conn, command, args, usedPrefix }) => {
     }
 }
 
-handler.help = ['darkweb']
+handler.help = ['darkwebb']
 handler.tags = ['giochi']
-handler.command = /^(darkweb|buy|hack|regala|cedi|zaino|inventario|negozio)$/i
+handler.command = /^(darkwebb|buy|hack|regala|cedi|zaino|inventario|negozio)$/i
 handler.group = true
 handler.register = false
 
