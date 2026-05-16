@@ -139,7 +139,7 @@ let handler = async (m, { conn, command, args, usedPrefix }) => {
 
 handler.help = ['darkwebb']
 handler.tags = ['giochi']
-handler.command = /^(darkwebb|buy|hack|regala|cedi|zaino|inventario|negozio)$/i
+handler.command = /^(darkwebb|buy|hackk|regala|cedi|zaino|inventario|negozio)$/i
 handler.group = true
 handler.register = false
 
