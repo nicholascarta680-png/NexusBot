@@ -365,25 +365,29 @@ if (m.message?.protocolMessage?.type === 'MESSAGE_EDIT') {
 if (!normalizedSender) return;
 
         user = global.db.data.users[normalizedSender] || (global.db.data.users[normalizedSender] = {
-    // --- Variabili Base esistenti ---
+    // --- Variabili Base ---
     exp: 0,
     money: 0,
+    euro: 0,
     muto: false,
     registered: false,
     name: m.pushName || '?',
     age: -1,
     regTime: -1,
     banned: false,
+    bannedReason: '',
     bank: 0,
     level: 0,
     firstTime: Date.now(),
     spam: 0,
+    antispam: 0,
+    messages: 0,
 
     // --- Variabili Famiglia (Elixir Tree) ---
     p: [],               // Prole: Lista dei JID dei figli adottati
     s: null,             // Senior: JID del genitore che ti ha adottato
 
-    // --- Integrazione Nuove Variabili Elixir ---
+    // --- Economia & Lavoro ---
     properties: [],      // Lista case, ville, business
     vehicles: [],        // Lista auto, yacht, jet
     job: null,           // Nome del lavoro attuale
@@ -391,7 +395,51 @@ if (!normalizedSender) return;
     workExp: 0,          // Esperienza lavorativa per i bonus
     corrotto: false,     // Stato protezione corruzione
     corrottoExp: 0,      // Scadenza protezione corruzione
-    lastClaim: 0         // Ultimo ritiro stipendio/rendite
+    lastClaim: 0,        // Ultimo ritiro stipendio/rendite
+    inventory: {},       // Inventario oggetti (darkweb, etc.)
+    coin: 0,             // Coin reward (mensile/settimanale)
+    diamonds: 0,         // Diamanti reward (mensile)
+
+    // --- Sistemi Giornalieri/Settimanali/Mensili ---
+    lastclaim: 0,        // Ultimo claim giornaliero
+    streak: 0,           // Striek giornaliero
+    weekly: 0,           // Ultimo claim settimanale
+    monthly: 0,          // Ultimo claim mensile
+    dailyActivity: [],   // Attività giornaliera (settimanale)
+    lastActivity: 0,     // Ultima attività
+
+    // --- Warn e Penalità ---
+    warn: 0,             // Warn generali
+    warns: {},           // Warn per chat (anti-link, anti-tagall)
+    antiLink2Warns: 0,   // Warn specifici anti-link2
+    ultimatum: 0,        // Contatore ultimatum (gp-ultimatum)
+
+    // --- Statistiche ---
+    bestemmie: 0,        // Contatore bestemmie
+    messaggi: 0,         // Contatore messaggi (messagiometri)
+    lastrob2: 0,         // Timestamp ultimo furto (euro-rubare)
+    lastpizzu: 0,        // Timestamp ultimo pizzo (mafia-sicilia)
+
+    // --- Premium ---
+    premium: false,       // Stato premium
+    premiumTime: 0,       // Scadenza premium
+
+    // --- Sistemi di Gioco ---
+    role: 'Principiante', // Ruolo utente (bot-ruoli)
+    profile: {            // Profilo utente
+        description: '',
+        gender: '',
+        instagram: '',
+        city: '',
+        birthday: '',
+        occupation: ''
+    },
+    infinito: false,     // Stato infinito (creatore-infinito)
+
+    // --- BOUNTY / TAGLIE (Aggiunti in questa sessione) ---
+    bounty: 0,           // Taglia attiva sull'utente
+    lastBountyAlert: 0,  // Timestamp ultimo avviso latitante
+    lastHunt: 0          // Timestamp ultima caccia (cooldown 15min)
 })
 
         chat = global.db.data.chats[m.chat] || (global.db.data.chats[m.chat] = {
