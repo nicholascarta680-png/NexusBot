@@ -14,12 +14,6 @@ let handler = async (m, { conn, command, args, usedPrefix }) => {
         return num.toLocaleString()
     }
 
-    // Se l'utente ha soldi infiniti, li forziamo in Banca e non in Money
-    if (user.money === Infinity) {
-        user.money = 0
-        user.bank = Infinity
-    }
-
     switch (command) {
         case 'portafoglio':
         case 'wallet':
