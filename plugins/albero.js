@@ -1,7 +1,6 @@
-// Plug-in creato da elixir
+// Plug-in creato da elixir (Fix testuale per Termux)
 import fs from 'fs'
 import path from 'path'
-import { createCanvas, loadImage } from 'canvas'
 
 const marriagesFile = path.resolve('media/database/sposi.json');
 if (!fs.existsSync(path.dirname(marriagesFile))) fs.mkdirSync(path.dirname(marriagesFile), { recursive: true });
@@ -21,107 +20,67 @@ const checkUser = (id) => {
     if (u.s === undefined) u.s = null 
 }
 
-// --- ENGINE GRAFICO ---
-async function drawUserCard(ctx, conn, id, x, y, role) {
-    const cardW = 200, cardH = 80;
-    ctx.save();
-    ctx.shadowColor = role === 'GENITORE' ? '#f5c2e7' : (role === 'PARTNER' ? '#f38ba8' : '#89b4fa');
-    ctx.shadowBlur = 15;
-    ctx.fillStyle = '#11111b';
-    ctx.beginPath();
-    ctx.roundRect(x - cardW/2, y - cardH/2, cardW, cardH, 20);
-    ctx.fill();
-    ctx.restore();
-
-    let grad = ctx.createLinearGradient(x - 100, y, x + 100, y);
-    grad.addColorStop(0, role === 'GENITORE' ? '#f5c2e7' : (role === 'PARTNER' ? '#f38ba8' : '#89b4fa'));
-    grad.addColorStop(1, '#cdd6f4');
-    ctx.strokeStyle = grad;
-    ctx.lineWidth = 3;
-    ctx.stroke();
-
-    try {
-        let url = await conn.profilePictureUrl(id, 'image').catch(() => 'https://telegra.ph');
-        let img = await loadImage(url);
-        ctx.save();
-        ctx.beginPath(); ctx.arc(x - 60, y, 30, 0, Math.PI * 2); ctx.clip();
-        ctx.drawImage(img, x - 90, y - 30, 60, 60); ctx.restore();
-    } catch (e) {}
-
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 16px sans-serif';
-    ctx.textAlign = 'left';
-    let rawName = await conn.getName(id);
-    let cleanName = rawName.replace(/[^\x00-\x7F]/g, "").trim() || "User";
-    ctx.fillText(cleanName.substring(0, 10), x - 20, y - 5);
-
-    ctx.fillStyle = ctx.strokeStyle;
-    ctx.font = 'italic 11px sans-serif';
-    ctx.fillText(role, x - 20, y + 15);
-}
-
 // --- HANDLER ---
 let handler = async (m, { conn, command, usedPrefix }) => {
     let user = m.sender;
     checkUser(user);
     let marriages = loadMarriages();
 
-    // --- ALBERO GENEALOGICO ---
+    // --- ALBERO GENEALOGICO (TESTUALE) ---
     if (command === 'albero' || command === 'famigliamia') {
         let target = m.mentionedJid[0] || (m.quoted ? m.quoted.sender : user);
         checkUser(target);
-        await m.reply('`⏳ Le cronache del regno stanno tracciando la tua stirpe...`');
-
-        const canvas = createCanvas(1000, 900);
-        const ctx = canvas.getContext('2d');
-        const bg = ctx.createRadialGradient(500, 450, 50, 500, 450, 600);
-        bg.addColorStop(0, '#1e1e2e'); bg.addColorStop(1, '#000000');
-        ctx.fillStyle = bg; ctx.fillRect(0, 0, 1000, 900);
-
-        ctx.fillStyle = "#ffffff";
-        for (let i = 0; i < 80; i++) {
-            ctx.globalAlpha = Math.random();
-            ctx.beginPath(); ctx.arc(Math.random() * 1000, Math.random() * 900, Math.random() * 2, 0, Math.PI * 2); ctx.fill();
-        }
-        ctx.globalAlpha = 1.0;
-
+        
         let u = global.db.data.users[target];
         let partner = marriages[target];
         let padre = u.s;
         let figli = u.p || [];
-        const centerX = 500;
+        
+        let targetName = await conn.getName(target);
+        let mentions = [target];
 
-        ctx.setLineDash();
-        ctx.strokeStyle = "rgba(205, 214, 244, 0.3)";
-        ctx.lineWidth = 2;
-
+        let txt = `✨ 📜 *SACRO ALBERO DELLA DINASTIA* 📜 ✨\n\n`;
+        
+        // 1. Linea Genitore
         if (padre) {
-            await drawUserCard(ctx, conn, padre, centerX, 150, 'GENITORE');
-            ctx.beginPath(); ctx.moveTo(centerX, 190); ctx.lineTo(centerX, 260); ctx.stroke();
-        }
-
-        if (partner) {
-            await drawUserCard(ctx, conn, target, centerX - 140, 350, 'IO');
-            await drawUserCard(ctx, conn, partner, centerX + 140, 350, 'PARTNER');
-            ctx.setLineDash([]); ctx.strokeStyle = '#f38ba8';
-            ctx.beginPath(); ctx.moveTo(centerX - 40, 350); ctx.lineTo(centerX + 40, 350); ctx.stroke();
+            let padreName = await conn.getName(padre);
+            txt += `👑 *Genitore:* ${padreName} (@${padre.split('@')[0]})\n`;
+            txt += `   │\n`;
+            txt += `   ▼\n`;
+            mentions.push(padre);
         } else {
-            await drawUserCard(ctx, conn, target, centerX, 350, 'IO');
+            txt += `🌌 *Origine:* Stirpe nata dalle stelle (Nessun genitore)\n   │\n   ▼\n`;
         }
 
-        if (figli.length > 0) {
-            const spacing = 250;
-            const startX = centerX - ((figli.length - 1) * spacing / 2);
-            ctx.setLineDash(); ctx.strokeStyle = "rgba(205, 214, 244, 0.3)";
-            ctx.beginPath(); ctx.moveTo(centerX, 390); ctx.lineTo(centerX, 450); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(startX, 450); ctx.lineTo(startX + (figli.length - 1) * spacing, 450); ctx.stroke();
-            for (let i = 0; i < figli.length; i++) {
-                let fX = startX + (i * spacing);
-                ctx.beginPath(); ctx.moveTo(fX, 450); ctx.lineTo(fX, 490); ctx.stroke();
-                await drawUserCard(ctx, conn, figli[i], fX, 550, 'FIGLIO/A');
-            }
+        // 2. Linea Centrale (Soggetto + Partner)
+        if (partner) {
+            let partnerName = await conn.getName(partner);
+            txt += `👤 *IO:* ${targetName} 💍 *PARTNER:* ${partnerName} (@${partner.split('@')[0]})\n`;
+            mentions.push(partner);
+        } else {
+            txt += `👤 *IO:* ${targetName} (In cerca dell'anima gemella 🌌)\n`;
         }
-        return conn.sendMessage(m.chat, { image: canvas.toBuffer(), caption: `✨ *SACIRO ALBERO DELLA DINASTIA* ✨\n\nI legami di @${target.split('@')[0]} sono scritti tra le stelle.`, mentions: [target] }, { quoted: m });
+
+        // 3. Linea Figli
+        if (figli.length > 0) {
+            txt += `   │\n`;
+            txt += `   ├───────────────┐\n`;
+            txt += `   ▼               ▼\n`;
+            txt += `👶 *Discendenza (${figli.length}):*\n`;
+            
+            for (let i = 0; i < figli.length; i++) {
+                let figlioId = figli[i];
+                let figlioName = await conn.getName(figlioId);
+                txt += `${i === figli.length - 1 ? '   └──' : '   ├──'} 🍼 ${figlioName} (@${figlioId.split('@')[0]})\n`;
+                mentions.push(figlioId);
+            }
+        } else {
+            txt += `\n🍁 *Ramo Terminale:* Questa dinastia non ha ancora eredi.`;
+        }
+
+        txt += `\n\n_I legami di @${target.split('@')[0]} sono scritti nel destino del regno._`;
+
+        return conn.sendMessage(m.chat, { text: txt, mentions: mentions }, { quoted: m });
     }
 
     // --- MATRIMONIO ---
@@ -174,7 +133,7 @@ let handler = async (m, { conn, command, usedPrefix }) => {
             { buttonId: `${usedPrefix}rifiuta`, buttonText: { displayText: 'Resto solo ❌' }, type: 1 }
         ];
         return conn.sendMessage(m.chat, { 
-            text: `👶 *IL CALORE DI UNA FAMIGLIA*\n\n@${user.split('@')[0]} vorrebbe adottarti @${target.split('@')[0]}.\n\n*Solo @${target.split('@')[0]} può rispondere.*`, 
+            text: `🍼 *UN ATTO DI AMORE E PROTEZIONE*\n\n@${user.split('@')[0]} desidera adottarti come figlio/a @${target.split('@')[0]}.\n\n*Solo @${target.split('@')[0]} può accettare.*`, 
             buttons: buttons, mentions: [user, target] 
         }, { quoted: m });
     }
@@ -182,38 +141,34 @@ let handler = async (m, { conn, command, usedPrefix }) => {
     if (command === 'accettaadozione') {
         let prop = global.adoption_proposals[user];
         if (!prop || user !== prop.target) return;
-        let genitore = prop.proposer;
-        checkUser(genitore);
-        global.db.data.users[genitore].p.push(user);
-        global.db.data.users[user].s = genitore;
-        clearTimeout(prop.timeout); delete global.adoption_proposals[user];
-        return m.reply(`🍼 *Benvenuto a casa! @${user.split('@')[0]} è stato ufficialmente adottato. Una nuova alba per questa famiglia!* ✨`);
-    }
-
-    if (command === 'disereda') {
-        let target = m.mentionedJid[0] || (m.quoted ? m.quoted.sender : null);
-        if (!target) return m.reply('`⚠️ Chi deve essere allontanato dal focolare?`');
-        let u = global.db.data.users[user];
-        if (!u.p.includes(target)) return m.reply('`❌ Questo sangue non appartiene alla tua lista dei figli.`');
-        u.p = u.p.filter(id => id !== target);
-        global.db.data.users[target].s = null;
-        return m.reply(`🚫 *L'ALBERO È STATO RECISO...* \n\nCon un atto severo, @${target.split('@')[0]} è stato rimosso dalla dinastia.`, null, { mentions: [target] });
+        checkUser(prop.proposer);
+        checkUser(user);
+        
+        global.db.data.users[user].s = prop.proposer;
+        if (!global.db.data.users[prop.proposer].p.includes(user)) {
+            global.db.data.users[prop.proposer].p.push(user);
+        }
+        
+        clearTimeout(prop.timeout);
+        delete global.adoption_proposals[user];
+        return m.reply('🍼 ✨ *La famiglia si allarga! L\'adozione è stata accettata con gioia e il legame è ora registrato.* ❤️');
     }
 
     if (command === 'rifiuta') {
-        if (global.marriage_proposals[user] && user === global.marriage_proposals[user].target) {
+        if (global.marriage_proposals && global.marriage_proposals[user]) {
+            clearTimeout(global.marriage_proposals[user].timeout);
             delete global.marriage_proposals[user];
-            return m.reply('💔 *La proposta è stata rifiutata. Un cuore rimane solitario...*');
         }
-        if (global.adoption_proposals[user] && user === global.adoption_proposals[user].target) {
+        if (global.adoption_proposals && global.adoption_proposals[user]) {
+            clearTimeout(global.adoption_proposals[user].timeout);
             delete global.adoption_proposals[user];
-            return m.reply('🥀 *L\'invito è stato declinato. Il viaggio continua in solitudine.*');
         }
+        return m.reply('❌ *La proposta è stata gentilmente declinata.*');
     }
 }
 
-handler.help = ['albero', 'sposa', 'adotta', 'disereda', 'divorzia']
-handler.tags = ['famiglia']
-handler.command = /^(famiglia|albero|famigliamia|sposa|accettasposa|accettaadozione|rifiuta|adotta|divorzia|disereda)$/i
+handler.help = ['albero', 'sposa', 'divorzia', 'adotta']
+handler.tags = ['rpg']
+handler.command = /^(albero|famigliamia|sposa|accettasposa|divorzia|adotta|accettaadozione|rifiuta)$/i
 
 export default handler
