@@ -1,32 +1,9 @@
-// ============================================================
-// 🕵️ SISTEMA TAGLIE (BOUNTY) - Elixir Bot
-// ============================================================
-// Campi database utilizzati:
-//   user.euro            - Saldo principale utente
-//   user.bounty          - Taglia attiva sull'utente (default: 0)
-//   user.lastBountyAlert - Timestamp ultimo avviso latitante (default: 0)
-//   user.lastHunt        - Timestamp ultima caccia (cooldown 15min)
-// ============================================================
-
-console.log('[BOUNTY] Plugin caricato con successo!')
-
-const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000
-const FIFTEEN_MINUTES = 15 * 60 * 1000
-const BOUNTY_ALERT_THRESHOLD = 150000
-const HUNT_SUCCESS_RATE = 0.4
-const HUNT_FAIL_PENALTY = 50
-
-let handler = async (m, { conn, command, args, usedPrefix, isOwner }) => {
-    console.log('[BOUNTY] Comando attivato:', command, 'da:', m.sender)
-    
+// Plug-in creato da elixir
+let handler = async (m, { conn, command, args, usedPrefix }) => {
     let user = global.db.data.users[m.sender]
-    if (!user) {
-        console.log('[BOUNTY] Utente non trovato:', m.sender)
-        return m.reply('❌ *Errore:* Utente non trovato.')
-    }
+    if (!user) return m.reply('❌ *Errore:* Utente non trovato.')
 
     if (typeof user.bounty === 'undefined') user.bounty = 0
-    if (typeof user.lastBountyAlert === 'undefined') user.lastBountyAlert = 0
     if (typeof user.lastHunt === 'undefined') user.lastHunt = 0
 
     switch (command) {
@@ -70,14 +47,14 @@ let handler = async (m, { conn, command, args, usedPrefix, isOwner }) => {
             if (huntTargetUser.bounty <= 0) return m.reply('🚫 *@' + huntTarget.split('@')[0] + '* non ha alcuna taglia attiva. Questa persona non è ricercata! 🕊️', null, { mentions: [huntTarget] })
 
             let now = Date.now()
-            if (user.lastHunt && (now - user.lastHunt) < FIFTEEN_MINUTES) {
-                let remaining = Math.ceil((FIFTEEN_MINUTES - (now - user.lastHunt)) / 60000)
+            if (user.lastHunt && (now - user.lastHunt) < 900000) {
+                let remaining = Math.ceil((900000 - (now - user.lastHunt)) / 60000)
                 return m.reply('⏳ Devi aspettare *' + remaining + ' minuto/i* prima di poter cacciare di nuovo!')
             }
 
             user.lastHunt = now
 
-            let huntSuccess = Math.random() < HUNT_SUCCESS_RATE
+            let huntSuccess = Math.random() < 0.4
             let bountyAmount = huntTargetUser.bounty
 
             if (huntSuccess) {
@@ -91,10 +68,10 @@ let handler = async (m, { conn, command, args, usedPrefix, isOwner }) => {
                 }, { quoted: m })
             } else {
                 if (typeof user.euro === 'undefined') user.euro = 0
-                user.euro = Math.max(0, user.euro - HUNT_FAIL_PENALTY)
+                user.euro = Math.max(0, user.euro - 50)
 
                 conn.sendMessage(m.chat, {
-                    text: '💨 *@' + huntTarget.split('@')[0] + '* è riuscito a sfuggire all\'inseguimento di *@' + m.sender.split('@')[0] + '*! Hai perso *' + HUNT_FAIL_PENALTY + ' Euro* in equipaggiamento. 😤',
+                    text: '💨 *@' + huntTarget.split('@')[0] + '* è riuscito a sfuggire all\'inseguimento di *@' + m.sender.split('@')[0] + '*! Hai perso *50 Euro* in equipaggiamento. 😤',
                     mentions: [m.sender, huntTarget]
                 }, { quoted: m })
             }
@@ -142,6 +119,7 @@ let handler = async (m, { conn, command, args, usedPrefix, isOwner }) => {
         case 'removetaglia':
         case 'cleartaglia':
         case 'removebounty': {
+            let isOwner = m.fromMe || global.owner.some(([num]) => num + '@s.whatsapp.net' === m.sender)
             if (!isOwner) {
                 return m.reply('🛡️ *ACCESSO NEGATO*\nSolo i proprietari del bot possono rimuovere taglie.')
             }
@@ -167,51 +145,8 @@ let handler = async (m, { conn, command, args, usedPrefix, isOwner }) => {
     }
 }
 
-handler.all = async function (m, { conn }) {
-    try {
-        if (m.fromMe) return
-        if (!m.sender) return
-
-        let user = global.db.data.users[m.sender]
-        if (!user) return
-
-        if (typeof user.bounty === 'undefined') user.bounty = 0
-        if (typeof user.lastBountyAlert === 'undefined') user.lastBountyAlert = 0
-
-        if (user.bounty <= 0) return
-        if (user.bounty < BOUNTY_ALERT_THRESHOLD) return
-
-        let allUsers = global.db.data.users
-        let topBounty = 0
-        let topUserId = null
-
-        for (let userId in allUsers) {
-            let u = allUsers[userId]
-            if (u && u.bounty && u.bounty > topBounty) {
-                topBounty = u.bounty
-                topUserId = userId
-            }
-        }
-
-        if (topUserId !== m.sender) return
-
-        let now = Date.now()
-        if (user.lastBountyAlert && (now - user.lastBountyAlert) < TWENTY_FOUR_HOURS) return
-
-        await conn.sendMessage(m.chat, {
-            text: '🚨 *ATTENZIONE!*\n\nIl ricercato numero uno del server, *@' + m.sender.split('@')[0] + '*, è appena entrato in chat!\nLa sua taglia attuale è di *' + user.bounty.toLocaleString() + ' Euro*!\n\nCacciatori, all\'attacco! 🎯',
-            mentions: [m.sender]
-        })
-
-        user.lastBountyAlert = now
-    } catch (e) {
-        console.error('[BOUNTY ERR] Auto-notification:', e)
-    }
-}
-
-handler.help = ['taglia <@utente> <importo>', 'caccia <@utente>', 'topricercati', 'removetaglia <@utente>']
+handler.help = ['taglia', 'caccia', 'topricercati', 'removetaglia']
 handler.tags = ['economy']
 handler.command = /^(taglia|bounty|caccia|hunt|topricercati|topbounty|ricercati|bountylist|removetaglia|cleartaglia|removebounty)$/i
-handler.group = true
 
 export default handler
