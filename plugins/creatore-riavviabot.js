@@ -27,5 +27,6 @@ let handler = async (m, { conn }) => {
 handler.help = ['riavvia']
 handler.tags = ['creatore']
 handler.command = ['riavvia', 'restart', 'reboot'] // Risponde a questi comandi
+handler.rowner = true // 🔐 Solo i veri proprietari del bot possono riavviare
 
 export default handler
