@@ -123,7 +123,7 @@ async function esplosione(chatId, conn, m) {
     await conn.sendMessage(chatId, { 
         text: finale, 
         mentions: [b.vittima, ...b.passaggi],
-        footer: '𝕰𝕷𝕴𝖃𝕴𝕽𝕭𝕺𝕿',
+        footer: 'NEXUS',
         interactiveButtons: playAgainButtons()
     });
 
