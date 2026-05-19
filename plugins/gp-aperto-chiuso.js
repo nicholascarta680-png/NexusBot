@@ -16,7 +16,7 @@ let handler = async (m, { conn, command }) => {
         contextInfo: {
             externalAdReply: {
                 title: isOpening ? '〔 ACCESS GRANTED 〕' : '〔 ACCESS DENIED 〕',
-                body: 'Gestionale Sistema Elixir',
+                body: 'Gestionale Sistema NEXUS',
                 thumbnailUrl: 'https://telegra.ph/file/your-image-link.jpg', // Opzionale: aggiungi un'immagine figa
                 sourceUrl: '',
                 mediaType: 1,
@@ -26,7 +26,7 @@ let handler = async (m, { conn, command }) => {
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
                 newsletterJid: '120363426482335068@newsletter',
-                newsletterName: `✦ ${global.db.data.nomedelbot || '𝕰𝕷𝕴𝖃𝕴𝕽 𝕭𝕺𝕿'} ✦`,
+                newsletterName: `✦ ${global.db.data.nomedelbot || 'NEXUS BOT'} ✦`,
                 serverMessageId: 143
             }
         }
