@@ -13,36 +13,24 @@ function unwrapMessageContent(message) {
   return content
 }
 
-function extractTextFromMessage(m, excludeQuoted = false) {
-  const texts = []
-  const seen = new Set()
-  const IGNORED_KEYS = ['fileSha256', 'mediaKey', 'fileEncSha256', 'jpegThumbnail', 'participant', 'stanzaId', 'remoteJid', 'id']
-
-  function recursiveExtract(obj) {
-    if (!obj || typeof obj !== 'object' || seen.has(obj)) return
-    seen.add(obj)
-    for (const key in obj) {
-      if (excludeQuoted && key === 'quotedMessage') continue
-      if (IGNORED_KEYS.includes(key)) continue
-      const value = obj[key]
-      if (typeof value === 'string' && value.length > 0) texts.push(value)
-      else if (typeof value === 'object') recursiveExtract(value)
-    }
-  }
-
-  if (m?.text) texts.push(m.text)
-  if (m?.caption) texts.push(m.caption)
-  recursiveExtract(unwrapMessageContent(m))
-  return texts.filter(Boolean).join(' ').replace(/[\s\u200b\u200c\u200d\uFEFF]+/g, ' ').trim()
+function extractTextFromMessage(m) {
+  // Estrae SOLO il testo e la caption del messaggio, senza scavare nell'oggetto
+  let text = ''
+  if (m?.text && typeof m.text === 'string') text += ' ' + m.text
+  if (m?.caption && typeof m.caption === 'string') text += ' ' + m.caption
+  return text.trim()
 }
 
 function containsLink(text) {
   const t = String(text || '').trim()
   if (!t) return false
-  const quick = /(https?:\/\/|www\.|chat\.whatsapp\.com\/|wa\.me\/|t\.me\/|discord\.gg\/|bit\.ly\/|tinyurl\.com\/|instagram\.com\/|facebook\.com\/|tiktok\.com\/|youtube\.com\/|youtu\.be\/)/i
-  if (quick.test(t)) return true
-  const genericDomain = /\b([a-z0-9-]+\.)+[a-z]{2,}(\/[\w\-._~%!$&'()*+,;=:@/?#\[\]]*)?/i
-  return genericDomain.test(t)
+  // Regex specifica per veri URL internet — richiede protocollo + dominio valido
+  const linkRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/gi
+  if (linkRegex.test(t)) return true
+  // Rilevamento WhatsApp/Telegram/Discord short link
+  const shortLinkRegex = /(chat\.whatsapp\.com\/|wa\.me\/|t\.me\/|discord\.gg\/|bit\.ly\/|tinyurl\.com\/)/i
+  if (shortLinkRegex.test(t)) return true
+  return false
 }
 
 // --- GESTIONE SANZIONI ---
@@ -92,7 +80,7 @@ handler.before = async function (m, { conn, isAdmin, isBotAdmin, isOwner, isSam 
   // Gli admin e Blood sono immuni
   if (isAdmin || isOwner || isSam) return true
 
-  const text = extractTextFromMessage(m, true)
+  const text = extractTextFromMessage(m)
   if (!containsLink(text)) return true
 
   // Azione immediata: eliminazione
