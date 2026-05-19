@@ -482,9 +482,14 @@ global.reloadHandler = async function (restatConn) {
     isInit = false;
     return true;
 };
-global.reloadBot = () => {
+global.reloadBot = async () => {
     console.log(chalk.bold.hex('#00D2FF')(`\n╭⭑⭒━━━✦❘༻ 🔄 RIAVVIO NATIVO ༺❘✦━━━⭒⭑\n┃  ♻️  Riavvio della connessione in corso...\n╰⭑⭒━━━✦❘༻☾⋆₊✧ ᴇʟɪxɪʀʙᴏᴛ ✧₊⁺⋆☽༺❘✦━━━⭒⭑`));
-    global.reloadHandler(true);
+    
+    // Aspetta 1 secondo per permettere a Baileys di svuotare la coda outbox
+    // prima di chiudere il socket, evitando Error: Connection Closed
+    setTimeout(() => {
+        global.reloadHandler(true);
+    }, 1000);
 };
 const pluginFolder = global.__dirname(join(__dirname, './plugins/index'));
 const pluginFilter = (filename) => /\.js$/.test(filename);
