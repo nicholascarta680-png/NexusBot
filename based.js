@@ -106,19 +106,6 @@ global.creds = 'creds.json';
 global.authFile = 'varesession';
 global.authFileJB = 'varebot-sub';
 
-// Funzione di riavvio nativo — definita il prima possibile per essere accessibile
-// da tutti i plugin e dal handler. Utilizza reloadHandler quando disponibile.
-global.reloadBot = async () => {
-    console.log('🔄 RIAVVIO NATIVO IN CORSO...');
-    if (typeof global.reloadHandler === 'function') {
-        setTimeout(() => {
-            global.reloadHandler(true);
-        }, 1000);
-    } else {
-        console.log('❌ Errore: global.reloadHandler non è ancora disponibile.');
-    }
-};
-
 setPerformanceConfig({
     performance: {
         enableCache: true,
