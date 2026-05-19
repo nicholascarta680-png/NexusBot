@@ -44,7 +44,7 @@ export async function before(m, { conn, isAdmin, isOwner, isSam }) {
   const text = `
 ⋆｡˚『 ╭ \`SISTEMA ANTIBOT\` ╯ 』˚｡⋆
 ╭
-┃ 🛡️ \`Stato:\` *Protocollo Elixir Attivo*
+┃ 🛡️ \`Stato:\` *Protocollo NEXUS Attivo*
 ┃
 ┃ 『 👤 』 \`Target:\` @${m.sender.split('@')[0]}
 ┃ 『 🤖 』 \`Dispositivo:\` *${device.toUpperCase()}*
@@ -58,7 +58,7 @@ export async function before(m, { conn, isAdmin, isOwner, isSam }) {
     mentions: [m.sender],
     contextInfo: {
       externalAdReply: {
-        title: '𝓔𝓛𝓘𝓧𝓘𝓡-𝓑𝓞𝓣 SECURITY',
+        title: 'NEXUS BOT SECURITY',
         body: 'Rilevamento connessione non sicura',
         thumbnailUrl: 'https://qu.ax/TfUj.jpg', // Usa la tua immagine se ne hai una specifica
         mediaType: 1,
