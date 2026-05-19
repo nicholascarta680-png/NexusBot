@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://readme-typing-svg.herokuapp.com?font=Cinzel+Decorative&size=50&pause=1000&color=D4AF37&center=true&vCenter=true&width=750&height=130&lines=✧+ELIXIR-BOT+✧;L'ECCELLENZA+DELL'AUTOMAZIONE;DESIGN+ED+ELEGANZA+SUREMA" alt="Elixir Bot Title" />
+  <img src="https://readme-typing-svg.herokuapp.com?font=Cinzel+Decorative&size=50&pause=1000&color=D4AF37&center=true&vCenter=true&width=750&height=130&lines=✧+ELIXIR-BOT+✧;L'ECCELLENZA+DELL'AUTOMAZIONE;DESIGN+ED+ELEGANZA+SUREMA" alt="𝚴𝛴𝜲𝐔𝑆 𝛣𝚯𝚻 Title" />
 </p>
 
 <p align="center">
@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <img src="https://readme-typing-svg.herokuapp.com?font=Montserrat&size=25&pause=800&color=FFFFFF&center=true&vCenter=true&width=600&height=60&lines=STATUS:+OPERATIVO+✨;CORE:+ELIXIR+ENGINE+💎;DEVELOPER:+ELIXIR" alt="Status SVG" />
+  <img src="https://readme-typing-svg.herokuapp.com?font=Montserrat&size=25&pause=800&color=FFFFFF&center=true&vCenter=true&width=600&height=60&lines=STATUS:+OPERATIVO+✨;CORE:+𝚴𝛴𝜲𝐔𝑆 𝛣𝚯𝚻+ENGINE+💎;DEVELOPER:+𝚴𝛴𝜲𝐔𝑆 𝛣𝚯𝚻" alt="Status SVG" />
 </p>
 
 ---
