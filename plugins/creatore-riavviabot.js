@@ -15,7 +15,7 @@ let handler = async (m, { conn }) => {
     // Aspetta 2 secondi per dare tempo a WhatsApp di inviare il messaggio e la reazione,
     // dopodiché killa il processo attuale.
     setTimeout(() => {
-      process.exit(0)
+      global.reloadBot() // Riavvio nativo senza killare il processo Node.js
     }, 2000)
 
   } catch (err) {
