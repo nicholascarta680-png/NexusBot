@@ -50,7 +50,7 @@ handler.before = async function (m, { conn, isAdmin, isBotAdmin, isOwner, isSam 
 
     const text = `${header}
 ╭
-┃ 🛡️ \`Stato:\` *Protocollo Elixir Attivo*
+┃ 🛡️ \`Stato:\` *Protocollo NEXUS Attivo*
 ┃
 ┃ 『 👤 』 \`Target:\` ${utente}
 ┃ 『 🌍 』 \`Origine:\` *Estera / VOIP*
@@ -65,7 +65,7 @@ handler.before = async function (m, { conn, isAdmin, isBotAdmin, isOwner, isSam 
       mentions: [decodedSender],
       contextInfo: {
         externalAdReply: {
-          title: 'ELIXIR BORDER CONTROL',
+          title: 'NEXUS BORDER CONTROL',
           body: 'Accesso negato: Numero non autorizzato',
           thumbnailUrl: 'https://qu.ax',
           mediaType: 1
