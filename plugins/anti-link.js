@@ -71,20 +71,50 @@ function extractStickerLink(m) {
 }
 
 /**
- * Estrae il testo da un messaggio gestendo anche i messaggi modificati (protocolMessage).
+ * Estrae tutto il testo da un messaggio: testo normale, modifiche, didascalie media,
+ * messaggi a visualizzazione singola, sondaggi (poll).
  */
-function extractText(m) {
-    // 1) Controllo manuale per messaggi modificati (protocolMessage)
+function extractAllText(m) {
+    const texts = [];
+
+    // 1) Messaggi modificati (protocolMessage)
     if (m.message?.protocolMessage?.type === 'MESSAGE_EDIT') {
         const editedMsg = m.message.protocolMessage.editedMessage;
         if (editedMsg) {
             const editedText = editedMsg.conversation || editedMsg.extendedTextMessage?.text || '';
-            if (editedText) return editedText.toLowerCase();
+            if (editedText) texts.push(editedText);
         }
     }
 
     // 2) Testo standard
-    return (m.text || m.caption || m.msg?.caption || m.msg?.text || '').toLowerCase();
+    const standardText = m.text || m.caption || m.msg?.caption || m.msg?.text || '';
+    if (standardText) texts.push(standardText);
+
+    // 3) Didascalie da media normali (immagine/video)
+    const mediaMsg = m.message?.imageMessage || m.message?.videoMessage;
+    if (mediaMsg?.caption) texts.push(mediaMsg.caption);
+
+    // 4) Media a visualizzazione singola (View Once)
+    const viewOnceMsg = m.message?.viewOnceMessage?.message || m.message?.viewOnceMessageV2?.message;
+    if (viewOnceMsg) {
+        const viewOnceContent = viewOnceMsg.imageMessage || viewOnceMsg.videoMessage;
+        if (viewOnceContent?.caption) texts.push(viewOnceContent.caption);
+    }
+
+    // 5) Sondaggi (pollCreationMessage) — domanda + opzioni
+    if (m.message?.pollCreationMessage) {
+        const poll = m.message.pollCreationMessage;
+        if (poll.name) texts.push(poll.name);
+        if (poll.options && Array.isArray(poll.options)) {
+            for (const opt of poll.options) {
+                if (opt.optionName) texts.push(opt.optionName);
+            }
+        }
+    }
+
+    // Unisci tutto e normalizza
+    const combined = texts.join(' ').toLowerCase().trim();
+    return combined || '';
 }
 
 // --- GESTIONE VIOLAZIONE ---
@@ -136,8 +166,9 @@ export async function before(m, { conn, isAdmin, isBotAdmin, isOwner, isSam }) {
     const chat = global.db.data.chats[m.chat];
     if (!chat?.antiLink) return false;
 
-    // Estrai il testo gestendo anche messaggi modificati
-    const extractedText = extractText(m);
+    // Estrai il testo da tutte le fonti: testo normale, modifiche, didascalie media,
+    // visualizzazione singola, sondaggi (poll)
+    const extractedText = extractAllText(m);
     
     let linkFound = false;
     let reason = '';
