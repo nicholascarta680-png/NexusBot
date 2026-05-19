@@ -54,7 +54,7 @@ let handler = async (m, { conn, usedPrefix }) => {
     const sep = '▸'
 
     const message = `
-*ᴇʟɪxɪʀʙᴏᴛ* 🔮 — ꜱʏꜱᴛᴇᴍ ʀᴇᴘᴏʀᴛ
+*NEXUS BOT* 🔮 — SYSTEM REPORT
 ${'─'.repeat(32)}
 
 ⚡ *ᴘᴇʀꜰᴏʀᴍᴀɴᴄᴇ*
