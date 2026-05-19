@@ -7,7 +7,7 @@ import os from 'os'
 const defaultMenu = {
   before: `
 ┎━━━━━━━━━━━━━━━━━━━┑
-┃ ✧ ᴇʟɪxɪʀ - ꜱᴇᴀʀᴄʜ ✧ ┃
+┃ ✧ NEXUS - SEARCH ✧ ┃
 ┖━━━━━━━━━━━━━━━━━━━┙
 ┌───────────────────┐
   👤 𝚄𝚜𝚎𝚛: %name
@@ -20,7 +20,7 @@ const defaultMenu = {
   header: '┍━━━〔 %category 〕━━━┑',
   body: '┇ 🔎  *%cmd*',
   footer: '┕━━━━━──ׄ──ׅ──ׄ──━━━━━┙\n',
-  after: `_ᴇʟɪxɪʀ-ʙᴏᴛ ɪɴᴛᴇʟʟɪɢᴇɴᴄᴇ sʏsᴛᴇᴍ_`
+  after: `_NEXUS-BOT INTELLIGENCE SYSTEM_`
 }
 
 let handler = async (m, { conn, usedPrefix: _p, __dirname }) => {
@@ -72,7 +72,7 @@ let handler = async (m, { conn, usedPrefix: _p, __dirname }) => {
         mentionedJid: [m.sender],
         forwardedNewsletterMessageInfo: {
           newsletterJid: '120363232743845068@newsletter',
-          newsletterName: "✧ ᴇʟɪxɪʀʙᴏᴛ ꜱᴇᴀʀᴄʜ ʀɪᴄᴇʀᴄʜᴇ ✧"
+          newsletterName: "✧ NEXUS BOT SEARCH RICERCHE ✧"
         }
       }
     }, { quoted: m })
