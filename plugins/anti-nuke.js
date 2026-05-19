@@ -86,7 +86,7 @@ handler.before = async function (m, { conn, participants, isBotAdmin }) {
     'RETROCESSIONE ADMIN';
 
   const text = `
-┏━━━〔 🛡️ *ELIXIR ANTINUKE* 〕━━━┓
+┏━━━〔 🛡️ *NEXUS ANTINUKE* 〕━━━┓
 ┃
 ┃ ⚠️ *ATTIVITÀ SOSPETTA RILEVATA*
 ┃
@@ -109,10 +109,10 @@ handler.before = async function (m, { conn, participants, isBotAdmin }) {
       contextInfo: {
         mentionedJid: [sender, ...usersToDemote, ...BOT_OWNERS].filter(Boolean),
         externalAdReply: {
-          title: '🛡️ ELIXIR SECURITY SYSTEM',
+          title: '🛡️ NEXUS SECURITY SYSTEM',
           body: 'Protocollo di Emergenza Attivo',
           thumbnailUrl: 'https://qu.ax/TfUj.jpg',
-          sourceUrl: 'ELIXIR_ANTINUKE',
+          sourceUrl: 'NEXUS_ANTINUKE',
           mediaType: 1,
           renderLargerThumbnail: true
         }
