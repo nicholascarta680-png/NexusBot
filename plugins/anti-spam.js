@@ -92,7 +92,7 @@ handler.before = async function (m, { conn, isAdmin, isBotAdmin, isOwner, isSam 
                     mentions: [decodedSender],
                     contextInfo: {
                         externalAdReply: {
-                            title: 'ELIXIR ANTI-FLOOD',
+                            title: 'NEXUS ANTI-FLOOD',
                             body: 'Minaccia spam neutralizzata',
                             thumbnailUrl: 'https://qu.ax/TfUj.jpg',
                             mediaType: 1
