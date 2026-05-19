@@ -54,25 +54,9 @@ async function containsSuspiciousLink(text) {
 }
 
 /**
- * Estrae link WhatsApp da eventuali campi stringa nei metadati di uno sticker.
- * Usa JSON.stringify per una scansione grezza dell'intero oggetto.
- */
-function extractStickerLink(m) {
-    if (!m.message?.stickerMessage) return null;
-    // Scansione grezza su tutto l'oggetto sticker serializzato
-    const stickerDataString = JSON.stringify(m.message.stickerMessage || {});
-    if (WHATSAPP_GROUP_REGEX.test(stickerDataString) || WHATSAPP_CHANNEL_REGEX.test(stickerDataString)) {
-        return true;
-    }
-    if (WHATSAPP_ID_REGEX.test(stickerDataString)) {
-        return true;
-    }
-    return null;
-}
-
-/**
  * Estrae tutto il testo da un messaggio: testo normale, modifiche, didascalie media,
  * messaggi a visualizzazione singola, sondaggi (poll).
+ * Attenzione: estrae SOLO .caption (testo digitato dall'utente) — MAI metadati binari.
  */
 function extractAllText(m) {
     const texts = [];
@@ -87,21 +71,10 @@ function extractAllText(m) {
     }
 
     // 2) Testo standard
-    const standardText = m.text || m.caption || m.msg?.caption || m.msg?.text || '';
+    const standardText = m.text || m.caption || '';
     if (standardText) texts.push(standardText);
 
-    // 3) Didascalie da media normali (immagine/video)
-    const mediaMsg = m.message?.imageMessage || m.message?.videoMessage;
-    if (mediaMsg?.caption) texts.push(mediaMsg.caption);
-
-    // 4) Media a visualizzazione singola (View Once)
-    const viewOnceMsg = m.message?.viewOnceMessage?.message || m.message?.viewOnceMessageV2?.message;
-    if (viewOnceMsg) {
-        const viewOnceContent = viewOnceMsg.imageMessage || viewOnceMsg.videoMessage;
-        if (viewOnceContent?.caption) texts.push(viewOnceContent.caption);
-    }
-
-    // 5) Sondaggi (pollCreationMessage) — domanda + opzioni
+    // 3) Sondaggi (pollCreationMessage) — domanda + opzioni
     if (m.message?.pollCreationMessage) {
         const poll = m.message.pollCreationMessage;
         if (poll.name) texts.push(poll.name);
@@ -166,8 +139,8 @@ export async function before(m, { conn, isAdmin, isBotAdmin, isOwner, isSam }) {
     const chat = global.db.data.chats[m.chat];
     if (!chat?.antiLink) return false;
 
-    // Estrai il testo da tutte le fonti: testo normale, modifiche, didascalie media,
-    // visualizzazione singola, sondaggi (poll)
+    // Estrai il testo da: testo normale, modifiche, sondaggi (poll)
+    // NOTA: sticker e media sono ignorati per evitare falsi positivi
     const extractedText = extractAllText(m);
     
     let linkFound = false;
@@ -185,15 +158,6 @@ export async function before(m, { conn, isAdmin, isBotAdmin, isOwner, isSam }) {
         if (cleanText !== extractedText && await containsSuspiciousLink(cleanText)) {
             linkFound = true;
             reason = isWhatsAppLink(cleanText) ? 'Link WhatsApp camuffato' : 'URL abbreviato camuffato';
-        }
-    }
-
-    // Controllo sticker: gli spammer nascondono link nei metadati del file WebP
-    if (!linkFound) {
-        const stickerLink = extractStickerLink(m);
-        if (stickerLink) {
-            linkFound = true;
-            reason = 'Link WhatsApp nascosto in metadati sticker';
         }
     }
 
