@@ -482,6 +482,10 @@ global.reloadHandler = async function (restatConn) {
     isInit = false;
     return true;
 };
+global.reloadBot = () => {
+    console.log(chalk.bold.hex('#00D2FF')(`\n╭⭑⭒━━━✦❘༻ 🔄 RIAVVIO NATIVO ༺❘✦━━━⭒⭑\n┃  ♻️  Riavvio della connessione in corso...\n╰⭑⭒━━━✦❘༻☾⋆₊✧ ᴇʟɪxɪʀʙᴏᴛ ✧₊⁺⋆☽༺❘✦━━━⭒⭑`));
+    global.reloadHandler(true);
+};
 const pluginFolder = global.__dirname(join(__dirname, './plugins/index'));
 const pluginFilter = (filename) => /\.js$/.test(filename);
 global.plugins = {};
