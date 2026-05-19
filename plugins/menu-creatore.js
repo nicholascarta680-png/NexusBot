@@ -7,7 +7,7 @@ import { join } from 'path'
 const defaultMenu = {
   before: `
 ┎━━━━━━━━━━━━━━━━━━━┑
-┃   ✧  ᴇʟɪxɪʀ ᴄʀᴇᴀᴛᴏʀ  ✧   ┃
+┃   ✧  NEXUS CREATOR  ✧   ┃
 ┖━━━━━━━━━━━━━━━━━━━┙
 ┌───────────────────┐
   👤 𝙾𝚠𝚗𝚎𝚛: %name
@@ -20,7 +20,7 @@ const defaultMenu = {
   header: '┍━━━〔 %category 〕━━━┑',
   body: '┇ 👨‍💻  *%cmd*',
   footer: '┕━━━━━──ׄ──ׅ──ׄ──━━━━━┙\n',
-  after: `_ᴇʟɪxɪʀ-ʙᴏᴛ ᴀᴅᴍɪɴ ɪɴᴛᴇʀꜰᴀᴄᴇ_`
+  after: `_NEXUS-BOT ADMIN INTERFACE_`
 }
 
 let handler = async (m, { conn, usedPrefix: _p, __dirname }) => {
@@ -77,9 +77,7 @@ let handler = async (m, { conn, usedPrefix: _p, __dirname }) => {
         mentionedJid: [m.sender],
         forwardedNewsletterMessageInfo: {
           newsletterJid: '120363232743845068@newsletter',
-          newsletterName: "✧ ᴇʟɪxɪʀʙᴏᴛ ɢʀᴏᴜᴘ ᴄʀᴇᴀᴛᴏʀᴇ ✧"
-        }
-      }
+          newsletterName: "✧ NEXUS BOT GROUP CREATORE
     }, { quoted: m })
 
   } catch (e) {
