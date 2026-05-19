@@ -77,7 +77,7 @@ async function handleViolation(conn, m, reason, isBotAdmin) {
         mentions: [sender],
         contextInfo: {
             externalAdReply: {
-                title: 'ᴇʟɪxɪʀ sᴇᴄᴜʀɪᴛʏ sʏsᴛᴇᴍ ᴠ3',
+                title: 'NEXUS SECURITY SYSTEM ᴠ3',
                 body: 'Restrizione Accesso Link Attiva',
                 thumbnailUrl: 'https://qu.ax',
                 mediaType: 1,
