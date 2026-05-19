@@ -51,6 +51,36 @@ async function containsSuspiciousLink(text) {
     return false;
 }
 
+/**
+ * Estrae link WhatsApp da eventuali campi stringa nei metadati di uno sticker.
+ * Gli spammer possono incorporare link nei metadati del file WebP.
+ */
+function extractStickerLink(m) {
+    if (!m.message?.stickerMessage) return null;
+    const stickerMsg = m.message.stickerMessage;
+    // Raccogliamo tutte le stringhe dai metadati dello sticker
+    const strings = [];
+    for (const key in stickerMsg) {
+        const value = stickerMsg[key];
+        if (typeof value === 'string' && value.length > 5) strings.push(value);
+        // Alcuni campi possono essere Buffer (es. fileSha256), li saltiamo
+    }
+    // Controlliamo anche il contextInfo se presente
+    const contextInfo = stickerMsg.contextInfo;
+    if (contextInfo) {
+        for (const key in contextInfo) {
+            const value = contextInfo[key];
+            if (typeof value === 'string' && value.length > 5) strings.push(value);
+        }
+    }
+    // Cerca link WhatsApp in tutte le stringhe trovate
+    for (const str of strings) {
+        if (WHATSAPP_GROUP_REGEX.test(str)) return str;
+        if (WHATSAPP_CHANNEL_REGEX.test(str)) return str;
+    }
+    return null;
+}
+
 // --- GESTIONE VIOLAZIONE ---
 
 async function handleViolation(conn, m, reason, isBotAdmin) {
@@ -108,6 +138,15 @@ export async function before(m, { conn, isAdmin, isBotAdmin, isOwner, isSam }) {
     if (await containsSuspiciousLink(extractedText)) {
         linkFound = true;
         reason = isWhatsAppLink(extractedText) ? 'Link WhatsApp non autorizzato' : 'Circuito URL abbreviato';
+    }
+
+    // Controllo sticker: gli spammer nascondono link nei metadati del file WebP
+    if (!linkFound) {
+        const stickerLink = extractStickerLink(m);
+        if (stickerLink) {
+            linkFound = true;
+            reason = 'Link WhatsApp nascosto in metadati sticker';
+        }
     }
 
     if (linkFound) {
