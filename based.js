@@ -106,6 +106,19 @@ global.creds = 'creds.json';
 global.authFile = 'varesession';
 global.authFileJB = 'varebot-sub';
 
+// Funzione di riavvio nativo — definita il prima possibile per essere accessibile
+// da tutti i plugin e dal handler. Utilizza reloadHandler quando disponibile.
+global.reloadBot = async () => {
+    console.log('🔄 RIAVVIO NATIVO IN CORSO...');
+    if (typeof global.reloadHandler === 'function') {
+        setTimeout(() => {
+            global.reloadHandler(true);
+        }, 1000);
+    } else {
+        console.log('❌ Errore: global.reloadHandler non è ancora disponibile.');
+    }
+};
+
 setPerformanceConfig({
     performance: {
         enableCache: true,
@@ -481,15 +494,6 @@ global.reloadHandler = async function (restatConn) {
     conn.ev.on('creds.update', conn.credsUpdate);
     isInit = false;
     return true;
-};
-global.reloadBot = async () => {
-    console.log(chalk.bold.hex('#00D2FF')(`\n╭⭑⭒━━━✦❘༻ 🔄 RIAVVIO NATIVO ༺❘✦━━━⭒⭑\n┃  ♻️  Riavvio della connessione in corso...\n╰⭑⭒━━━✦❘༻☾⋆₊✧ ᴇʟɪxɪʀʙᴏᴛ ✧₊⁺⋆☽༺❘✦━━━⭒⭑`));
-    
-    // Aspetta 1 secondo per permettere a Baileys di svuotare la coda outbox
-    // prima di chiudere il socket, evitando Error: Connection Closed
-    setTimeout(() => {
-        global.reloadHandler(true);
-    }, 1000);
 };
 const pluginFolder = global.__dirname(join(__dirname, './plugins/index'));
 const pluginFilter = (filename) => /\.js$/.test(filename);
