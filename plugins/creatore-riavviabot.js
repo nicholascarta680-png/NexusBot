@@ -3,20 +3,20 @@
 let handler = async (m, { conn }) => {
   try {
     // Reazione per far capire che il comando è stato ricevuto
-    await m.react('⏳')
+    await conn.sendMessage(m.chat, { react: { text: '⏳', key: m.key } })
     
     // Messaggio di avviso in chat
     let message = `🔄 *RIASSUNTO VPS*: Sistema in riavvio...\n\n_Il bot si spegnerà e si riaccenderà in pochi secondi._`
     await conn.reply(m.chat, message, m)
     
     // Reazione finale prima dello spegnimento
-    await m.react('🔄')
+    await conn.sendMessage(m.chat, { react: { text: '🔄', key: m.key } })
 
-    // Aspetta 2 secondi per dare tempo a WhatsApp di inviare il messaggio e la reazione,
-    // dopodiché killa il processo attuale.
+    // Aspetta 3 secondi per dare tempo a WhatsApp di elaborare la coda dei messaggi,
+    // dopodiché attiva il riavvio nativo senza killare il processo Node.js.
     setTimeout(() => {
-      global.reloadBot() // Riavvio nativo senza killare il processo Node.js
-    }, 2000)
+      global.reloadBot()
+    }, 3000)
 
   } catch (err) {
     await conn.reply(m.chat, `❌ *ERRORE DURANTE IL RIAVVIO*\n\n> ${err.message}`, m)
