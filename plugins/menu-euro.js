@@ -10,7 +10,7 @@ const localImg = join(process.cwd(), 'menu-euro.jpeg');
 const defaultMenu = {
   before: `
 ┎━━━━━━━━━━━━━━━━━━━┑
-┃ ✧ ᴇʟɪxɪʀ - ᴇᴄᴏɴᴏᴍʏ ✧ ┃
+┃ ✧ NEXUS - ECONOMY ✧ ┃
 ┖━━━━━━━━━━━━━━━━━━━┙
 ┌───────────────────┐
   👤 𝚄𝚜𝚎𝚛: %name
@@ -85,7 +85,7 @@ let handler = async (m, { conn, usedPrefix: _p, __dirname, args, command}) => {
         mentionedJid: [m.sender],
         forwardedNewsletterMessageInfo: {
           newsletterJid: '120363232743845068@newsletter',
-          newsletterName: "✧ ᴇʟɪxɪʀʙᴏᴛ ᴇᴄᴏɴᴏᴍʏ ✧"
+          newsletterName: "✧ NEXUS BOT ECONOMY ✧"
         }
       }
     }, { quoted: m })
