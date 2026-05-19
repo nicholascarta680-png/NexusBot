@@ -35,7 +35,7 @@ const handler = async (m, { conn }) => {
   const ulSpeed = (Math.random() * 50 + 80).toFixed(2)
 
   const text = `
-*ᴇʟɪxɪʀʙᴏᴛ* — ꜱʏꜱᴛᴇᴍ ᴅɪᴀɢɴᴏꜱᴛɪᴄ
+*NEXUS BOT* — SYSTEM REPORT
 
   ✧ ᴏᴘᴇʀᴀᴛᴏʀ: \`${m.pushName || 'User'}\`
   ✧ ᴘɪɴɢ: \`${ping.toFixed(2)} ms\`
@@ -49,20 +49,20 @@ const handler = async (m, { conn }) => {
 *ᴍᴇᴍᴏʀʏ ᴜꜱᴀɢᴇ*
   ⋄ ʀᴀᴍ ᴛᴏᴛᴀʟᴇ: \`${formatBytes(ramTot)}\`
   ⋄ ɪɴ ᴜꜱᴏ: \`${formatBytes(ramUsed)} (${ramPerc}%)\`
-  ⋄ ᴇʟɪxɪʀʙᴏᴛ: \`${formatBytes(ramBot)}\`
+  ⋄ NEXUS BOT: \`${formatBytes(ramBot)}\`
 
 *ʜᴀʀᴅᴡᴀʀᴇ*
   ⋄ ᴄᴘᴜ: \`${cpuModel}\`
   ⋄ ᴛʜʀᴇᴀᴅꜱ: \`${cpuThreads} Core\`
   ⋄ ᴘʟᴀᴛꜰᴏʀᴍ: \`Linux/Node.js\`
 
-— ᴇʟɪxɪʀʙᴏᴛ ᴅɪᴀɢɴᴏꜱᴛɪᴄ ꜱʏꜱᴛᴇᴍ`.trim()
+— NEXUS BOT DIAGNOSTIC SYSTEM`.trim()
 
   await conn.sendMessage(m.chat, { 
     text: text,
     contextInfo: {
       externalAdReply: {
-        title: "ᴇʟɪxɪʀʙᴏᴛ • ꜱʏꜱᴛᴇᴍ ᴀɴᴀʟʏꜱɪꜱ",
+        title: "NEXUS BOT • SYSTEM ANALISIS",
         body: `ʟᴀᴛᴇɴᴢᴀ ᴅɪ ʀᴇᴛᴇ: ${ping.toFixed(2)}ms`,
         mediaType: 1,
         renderLargerThumbnail: false,
