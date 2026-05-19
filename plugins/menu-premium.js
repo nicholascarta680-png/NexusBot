@@ -7,7 +7,7 @@ const localImg = join(process.cwd(), 'menu-premium.jpeg');
 const defaultMenu = {
   before: `
 ┎━━━━━━━━━━━━━━━━━━━┑
-┃ ✧ ᴇʟɪxɪʀ - ᴘʀᴇᴍɪᴜᴍ ✧ ┃
+┃ ✧ NEXUS - PREMIUM ✧ ┃
 ┖━━━━━━━━━━━━━━━━━━━┙
 ┌───────────────────┐
   👤 𝚄𝚜𝚎𝚛: %name
@@ -20,7 +20,7 @@ const defaultMenu = {
   header: '┍━━━〔 %category 〕━━━┑',
   body: '┇ 👑  *%cmd*',
   footer: '┕━━━━━──ׄ──ׅ──ׄ──━━━━━┙\n',
-  after: `_ᴇʟɪxɪʀ-ʙᴏᴛ ᴇxᴄʟᴜsɪᴠᴇ sʏsᴛᴇᴍ_`
+  after: `_NEXUS-BOT EXCECUTIVE SYSTEM_`
 }
 
 let handler = async (m, { conn, usedPrefix: _p }) => {
@@ -71,7 +71,7 @@ let handler = async (m, { conn, usedPrefix: _p }) => {
         mentionedJid: [m.sender],
         forwardedNewsletterMessageInfo: {
           newsletterJid: '120363232743845068@newsletter',
-          newsletterName: "✧ ᴇʟɪxɪʀ-ʙᴏᴛ ᴘʀᴇᴍɪᴜᴍ ✧"
+          newsletterName: "✧ NEXUS-BOT PREMIUM ✧"
         }
       }
     }, { quoted: m })
