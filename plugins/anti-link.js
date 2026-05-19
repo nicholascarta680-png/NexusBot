@@ -12,7 +12,6 @@ import { FormData } from 'formdata-node';
 const WHATSAPP_GROUP_REGEX = /\bchat\.whatsapp\.com\/([0-9A-Za-z]{20,24})/i;
 const WHATSAPP_CHANNEL_REGEX = /whatsapp\.com\/channel\/([0-9A-Za-z]{20,24})/i;
 const GENERAL_URL_REGEX = /https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&=]*)/gi;
-const WHATSAPP_ID_REGEX = /\b[0-9A-Za-z]{20,24}\b/;
 const SHORT_URL_DOMAINS = [
     'bit.ly', 'tinyurl.com', 't.co', 'short.link', 'shorturl.at',
     'is.gd', 'v.gd', 'goo.gl', 'ow.ly', 'buff.ly',
@@ -49,45 +48,7 @@ async function containsSuspiciousLink(text) {
     if (!text) return false;
     if (isWhatsAppLink(text)) return true;
     if (SHORT_URL_REGEX.test(text)) return true;
-    if (WHATSAPP_ID_REGEX.test(text)) return true;
     return false;
-}
-
-/**
- * Estrae tutto il testo da un messaggio: testo normale, modifiche, didascalie media,
- * messaggi a visualizzazione singola, sondaggi (poll).
- * Attenzione: estrae SOLO .caption (testo digitato dall'utente) — MAI metadati binari.
- */
-function extractAllText(m) {
-    const texts = [];
-
-    // 1) Messaggi modificati (protocolMessage)
-    if (m.message?.protocolMessage?.type === 'MESSAGE_EDIT') {
-        const editedMsg = m.message.protocolMessage.editedMessage;
-        if (editedMsg) {
-            const editedText = editedMsg.conversation || editedMsg.extendedTextMessage?.text || '';
-            if (editedText) texts.push(editedText);
-        }
-    }
-
-    // 2) Testo standard
-    const standardText = m.text || m.caption || '';
-    if (standardText) texts.push(standardText);
-
-    // 3) Sondaggi (pollCreationMessage) — domanda + opzioni
-    if (m.message?.pollCreationMessage) {
-        const poll = m.message.pollCreationMessage;
-        if (poll.name) texts.push(poll.name);
-        if (poll.options && Array.isArray(poll.options)) {
-            for (const opt of poll.options) {
-                if (opt.optionName) texts.push(opt.optionName);
-            }
-        }
-    }
-
-    // Unisci tutto e normalizza
-    const combined = texts.join(' ').toLowerCase().trim();
-    return combined || '';
 }
 
 // --- GESTIONE VIOLAZIONE ---
@@ -139,26 +100,14 @@ export async function before(m, { conn, isAdmin, isBotAdmin, isOwner, isSam }) {
     const chat = global.db.data.chats[m.chat];
     if (!chat?.antiLink) return false;
 
-    // Estrai il testo da: testo normale, modifiche, sondaggi (poll)
-    // NOTA: sticker e media sono ignorati per evitare falsi positivi
-    const extractedText = extractAllText(m);
+    const extractedText = (m.text || m.caption || m.msg?.caption || m.msg?.text || '').toLowerCase();
     
     let linkFound = false;
     let reason = '';
 
-    // Testo originale
-    if (extractedText && await containsSuspiciousLink(extractedText)) {
+    if (await containsSuspiciousLink(extractedText)) {
         linkFound = true;
         reason = isWhatsAppLink(extractedText) ? 'Link WhatsApp non autorizzato' : 'Circuito URL abbreviato';
-    }
-
-    // Testo "pulito" (senza spazi) per link camuffati: c h a t . w h a t s a p p . c o m
-    if (!linkFound && extractedText) {
-        const cleanText = extractedText.replace(/\s+/g, '');
-        if (cleanText !== extractedText && await containsSuspiciousLink(cleanText)) {
-            linkFound = true;
-            reason = isWhatsAppLink(cleanText) ? 'Link WhatsApp camuffato' : 'URL abbreviato camuffato';
-        }
     }
 
     if (linkFound) {
