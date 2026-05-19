@@ -39,7 +39,7 @@ export async function before(m, { conn, isAdmin, isBotAdmin, isOwner, isSam }) {
 
   const text = `${header}
 ╭
-┃ 🛡️ \`Stato:\` *Protocollo Blood Attivo*
+┃ 🛡️ \`Stato:\` *Protocollo NEXUS Attivo*
 ┃
 ┃ 『 👤 』 \`Target:\` @${m.sender.split('@')[0]}
 ┃ 『 📊 』 \`Rilevato:\` *Creazione Sondaggio*
@@ -55,7 +55,7 @@ ${statusNote}
       mentions: [m.sender],
       contextInfo: {
         externalAdReply: {
-          title: 'BLOOD SECURITY',
+          title: 'NEXUS SECURITY',
           body: 'Restrizione sondaggi attiva',
           thumbnailUrl: 'https://qu.ax/TfUj.jpg',
           mediaType: 1,
