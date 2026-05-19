@@ -80,7 +80,7 @@ async function getTopArtists(username) {
 const handler = async (m, { conn, usedPrefix, text, command }) => {
 
   if (command === 'setuser') {
-    if (!text) return m.reply(`🩸 *ᴇʟɪxɪʀ ʙᴏᴛ�*\n\n💡 _Scrivi:_ ${usedPrefix}setuser nome_utente`)
+    if (!text) return m.reply(`🩸 *NEXUS BOT�*\n\n💡 _Scrivi:_ ${usedPrefix}setuser nome_utente`)
     setLastfmUsername(m.sender, text.trim())
     return m.reply(`✅ *Profilo Last.fm collegato con successo!*`)
   }
@@ -105,7 +105,7 @@ const handler = async (m, { conn, usedPrefix, text, command }) => {
     const likes = getLikesReceived(username)
 
     let infoMsg = `┏━━━━━━━━━━━━━━━━━━━┓\n`
-    infoMsg += `      🎧  *𝐁𝐋𝐎𝐎𝐃 𝐋𝐀𝐒𝐓.𝐅𝐌* 🎧\n`
+    infoMsg += `      🎧  *NEXUS 𝐋𝐀𝐒𝐓.𝐅𝐌* 🎧\n`
     infoMsg += `┗━━━━━━━━━━━━━━━━━━━┛\n\n`
     infoMsg += `◈ 👤 *𝗨𝘁𝗲𝗻𝘁𝗲:* ${username}\n`
     infoMsg += `◈ 📀 *𝗦𝘁𝗮𝘁𝗼:* ${nowPlaying ? '🔥 _In riproduzione..._' : '🕒 _Ultimo ascolto_'}\n\n`
