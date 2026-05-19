@@ -10,7 +10,7 @@ const localImg = join(process.cwd(), 'menu-download.jpeg');
 const defaultMenu = {
   before: `
 ┎━━━━━━━━━━━━━━━━━━━┑
-┃ ✧ ᴇʟɪxɪʀ - ᴅᴏᴡɴʟᴏᴀᴅ ✧  ┃
+┃ ✧ NEXUS - DOWNLOAD ✧  ┃
 ┖━━━━━━━━━━━━━━━━━━━┙
 ┌───────────────────┐
   👤 𝚄𝚜𝚎𝚛: %name
