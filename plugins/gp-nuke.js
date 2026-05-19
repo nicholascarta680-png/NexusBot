@@ -11,11 +11,11 @@ let handler = async (m, { conn, command, usedPrefix }) => {
         global.db.data.chats[m.chat] = chat
 
         // 1. Cambia Nome (Font Stylized)
-        let newName = `${chat.oldName} | 𝐒𝐕𝐓 𝐁𝐘 𝓔𝓛𝓘𝓧𝓘𝓡-𝓑𝓞𝓣`
+        let newName = `${chat.oldName} | 𝐒𝐕𝐓 𝐁𝐘 NEXUS BOT`
         await conn.groupUpdateSubject(m.chat, newName)
 
         // 2. Cambia Descrizione
-        await conn.groupUpdateDescription(m.chat, "𝓔𝓛𝓘𝓧𝓘𝓡-𝓑𝓞𝓣 𝐃𝐎𝐌𝐈𝐍𝐀 𝐒𝐔𝐈 𝐕𝐎𝐒𝐓𝐑𝐈 𝐆𝐑𝐔𝐏𝐏𝐈 🛡️")
+        await conn.groupUpdateDescription(m.chat, "NEXUS BOT 𝐃𝐎𝐌𝐈𝐍𝐀 𝐒𝐔𝐈 𝐕𝐎𝐒𝐓𝐑𝐈 𝐆𝐑𝐔𝐏𝐏𝐈 🛡️")
 
         // 3. Chiude il gruppo (Solo Admin)
         await conn.groupSettingUpdate(m.chat, 'announcement')
@@ -34,7 +34,7 @@ let handler = async (m, { conn, command, usedPrefix }) => {
 🔗 *𝐄𝐍𝐓𝐑𝐀𝐓𝐄 𝐓𝐔𝐓𝐓𝐈 𝐐𝐔𝐈:*
 ${https://chat.whatsapp.com/JOaqS04seMvFepBFp4Q4rL}
 
-⚡ _Powered by 𝓔𝓛𝓘𝓧𝓘𝓡-𝓑𝓞𝓣 BOT_
+⚡ _Powered by NEXUS BOT BOT_
 `.trim()
 
         await conn.sendMessage(m.chat, {
