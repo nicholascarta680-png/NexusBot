@@ -17,7 +17,7 @@ let tags = {
 const defaultMenu = {
   testoInizio: `
 ┏━━━━━━━━━━━━━━━━━━━━┓
- 💠  ᴇʟɪxɪʀ - ʙᴏᴛ 💠
+ 💠  NEXUS - BOT 💠
 ┗━━━━━━━━━━━━━━━━━━━━┛
  ┌───────────────────
  │ 👤 *User:* %name
@@ -31,7 +31,7 @@ const defaultMenu = {
   header: '      ⋆｡˚『 %category 』˚｡⋆\n╭',
   body: '*│ ➢* 『%emoji』 %cmd',
   footer: '*╰━━━━━━━──────━━━━━━━*\n',
-  testoFine: `_Powered by ᴇʟɪxɪʀ-ʙᴏᴛ Interface_`,
+  testoFine: `_Powered by NEXUS-BOT Interface_`,
 }
 
 const localImg = './menu-principale.jpeg'
