@@ -79,7 +79,7 @@ let handler = async (m, { conn, usedPrefix, command, args, isOwner, isAdmin, isS
   const getStatus = (f) => (f.store === 'bot' ? bot[f.key] : chat[f.key]) ? '🟢' : '🔴';
 
   let menu = `┎━━━━━━━━━━━━━━━━━━━━┑
-┃   ✧  ᴇʟɪxɪʀ - ᴍᴀꜱᴛᴇʀ ᴄᴏɴᴛʀᴏʟ  ✧   ┃
+┃   ✧  NEXUS - MASTER CONTROL  ✧   ┃
 ┖━━━━━━━━━━━━━━━━━━━━┙
 ┌────────────────────┐
   👤 𝚄𝚜𝚎𝚛: ${userName}
@@ -117,7 +117,7 @@ let handler = async (m, { conn, usedPrefix, command, args, isOwner, isAdmin, isS
     menu += `┇ ${getStatus(f)} ${f.name}\n┇ _${f.desc}_\n┇ ➤ *${f.key}*\n┇\n`;
   });
 
-  menu += `*┕━━━━━━━──ׄ──ׅ──ׄ──━━━━━━━┙*\n\n_ᴇʟɪxɪʀ-ʙᴏᴛ sᴇᴄᴜʀɪᴛʏ ɪɴᴛᴇʀꜰᴀᴄᴇ_`;
+  menu += `*┕━━━━━━━──ׄ──ׅ──ׄ──━━━━━━━┙*\n\n_NEXUS-BOT SECURETY INTERFACE_`;
 
   let thumb;
   const imagePath = path.join(process.cwd(), 'menu-sicurezza.jpeg');
@@ -132,7 +132,7 @@ let handler = async (m, { conn, usedPrefix, command, args, isOwner, isAdmin, isS
     text: menu,
     contextInfo: {
       externalAdReply: {
-        title: "ᴇʟɪxɪʀ - ᴍᴀꜱᴛᴇʀ ᴄᴏɴᴛʀᴏʟ",
+        title: "NEXUS - MASTER CONTROL",
         body: "Terminal Console v3.1",
         mediaType: 1,
         renderLargerThumbnail: true,
