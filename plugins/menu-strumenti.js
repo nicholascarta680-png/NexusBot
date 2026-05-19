@@ -7,7 +7,7 @@ const localImg = join(process.cwd(), 'menu-strumenti.jpeg');
 const defmenu = {
   before: `
 ┏━━━━━━━━━━━━━━━━━━━━┓
- 💉 ᴇʟɪxɪʀ - ᴛᴏᴏʟꜱ 💉
+ 💉 NEXUS - TOOLS 💉
 ┗━━━━━━━━━━━━━━━━━━━━┛
  ┌───────────────────
  │ 🧪 *Soggetto:* %name
@@ -23,7 +23,7 @@ const defmenu = {
 
 let handler = async (m, { conn, usedPrefix: _p }) => {
   let tags = {
-    'strumenti': 'LABORATORIO ELIXIR'
+    'strumenti': 'LABORATORIO NEXUS'
   }
 
   try {
