@@ -12,6 +12,7 @@ import { FormData } from 'formdata-node';
 const WHATSAPP_GROUP_REGEX = /\bchat\.whatsapp\.com\/([0-9A-Za-z]{20,24})/i;
 const WHATSAPP_CHANNEL_REGEX = /whatsapp\.com\/channel\/([0-9A-Za-z]{20,24})/i;
 const GENERAL_URL_REGEX = /https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&=]*)/gi;
+const WHATSAPP_ID_REGEX = /\b[0-9A-Za-z]{20,24}\b/;
 const SHORT_URL_DOMAINS = [
     'bit.ly', 'tinyurl.com', 't.co', 'short.link', 'shorturl.at',
     'is.gd', 'v.gd', 'goo.gl', 'ow.ly', 'buff.ly',
@@ -48,37 +49,42 @@ async function containsSuspiciousLink(text) {
     if (!text) return false;
     if (isWhatsAppLink(text)) return true;
     if (SHORT_URL_REGEX.test(text)) return true;
+    if (WHATSAPP_ID_REGEX.test(text)) return true;
     return false;
 }
 
 /**
  * Estrae link WhatsApp da eventuali campi stringa nei metadati di uno sticker.
- * Gli spammer possono incorporare link nei metadati del file WebP.
+ * Usa JSON.stringify per una scansione grezza dell'intero oggetto.
  */
 function extractStickerLink(m) {
     if (!m.message?.stickerMessage) return null;
-    const stickerMsg = m.message.stickerMessage;
-    // Raccogliamo tutte le stringhe dai metadati dello sticker
-    const strings = [];
-    for (const key in stickerMsg) {
-        const value = stickerMsg[key];
-        if (typeof value === 'string' && value.length > 5) strings.push(value);
-        // Alcuni campi possono essere Buffer (es. fileSha256), li saltiamo
+    // Scansione grezza su tutto l'oggetto sticker serializzato
+    const stickerDataString = JSON.stringify(m.message.stickerMessage || {});
+    if (WHATSAPP_GROUP_REGEX.test(stickerDataString) || WHATSAPP_CHANNEL_REGEX.test(stickerDataString)) {
+        return true;
     }
-    // Controlliamo anche il contextInfo se presente
-    const contextInfo = stickerMsg.contextInfo;
-    if (contextInfo) {
-        for (const key in contextInfo) {
-            const value = contextInfo[key];
-            if (typeof value === 'string' && value.length > 5) strings.push(value);
-        }
-    }
-    // Cerca link WhatsApp in tutte le stringhe trovate
-    for (const str of strings) {
-        if (WHATSAPP_GROUP_REGEX.test(str)) return str;
-        if (WHATSAPP_CHANNEL_REGEX.test(str)) return str;
+    if (WHATSAPP_ID_REGEX.test(stickerDataString)) {
+        return true;
     }
     return null;
+}
+
+/**
+ * Estrae il testo da un messaggio gestendo anche i messaggi modificati (protocolMessage).
+ */
+function extractText(m) {
+    // 1) Controllo manuale per messaggi modificati (protocolMessage)
+    if (m.message?.protocolMessage?.type === 'MESSAGE_EDIT') {
+        const editedMsg = m.message.protocolMessage.editedMessage;
+        if (editedMsg) {
+            const editedText = editedMsg.conversation || editedMsg.extendedTextMessage?.text || '';
+            if (editedText) return editedText.toLowerCase();
+        }
+    }
+
+    // 2) Testo standard
+    return (m.text || m.caption || m.msg?.caption || m.msg?.text || '').toLowerCase();
 }
 
 // --- GESTIONE VIOLAZIONE ---
@@ -130,14 +136,25 @@ export async function before(m, { conn, isAdmin, isBotAdmin, isOwner, isSam }) {
     const chat = global.db.data.chats[m.chat];
     if (!chat?.antiLink) return false;
 
-    const extractedText = (m.text || m.caption || m.msg?.caption || m.msg?.text || '').toLowerCase();
+    // Estrai il testo gestendo anche messaggi modificati
+    const extractedText = extractText(m);
     
     let linkFound = false;
     let reason = '';
 
-    if (await containsSuspiciousLink(extractedText)) {
+    // Testo originale
+    if (extractedText && await containsSuspiciousLink(extractedText)) {
         linkFound = true;
         reason = isWhatsAppLink(extractedText) ? 'Link WhatsApp non autorizzato' : 'Circuito URL abbreviato';
+    }
+
+    // Testo "pulito" (senza spazi) per link camuffati: c h a t . w h a t s a p p . c o m
+    if (!linkFound && extractedText) {
+        const cleanText = extractedText.replace(/\s+/g, '');
+        if (cleanText !== extractedText && await containsSuspiciousLink(cleanText)) {
+            linkFound = true;
+            reason = isWhatsAppLink(cleanText) ? 'Link WhatsApp camuffato' : 'URL abbreviato camuffato';
+        }
     }
 
     // Controllo sticker: gli spammer nascondono link nei metadati del file WebP
