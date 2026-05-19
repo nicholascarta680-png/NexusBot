@@ -35,7 +35,7 @@
     "varebot-sub": "varebot-sub"
   },
   "scripts": {
-    "start": "while true; do node based.js; echo 'Riavvio automatico...'; sleep 1; done",
+    "start": "NODE_TLS_REJECT_UNAUTHORIZED=0 node based.js",
     "code": "NODE_TLS_REJECT_UNAUTHORIZED=0 node based.js code",
     "qr": "NODE_TLS_REJECT_UNAUTHORIZED=0 node based.js qr"
   },
