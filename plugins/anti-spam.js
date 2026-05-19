@@ -77,14 +77,14 @@ handler.before = async function (m, { conn, isAdmin, isBotAdmin, isOwner, isSam 
 
                 const text = `${header}
 ╭
-┃ 🛡️ \`Stato:\` *Protocollo elixir Attivo*
+┃ 🛡️ \`Stato:\` *Protocollo NEXUS Attivo*
 ┃
 ┃ 『 👤 』 \`Target:\` @${decodedSender.split('@')[0]}
 ┃ 『 ⚡ 』 \`Rilevato:\` *${typeSanz}*
 ┃ 『 🚫 』 \`Azione:\` *ELIMINAZIONE UTENTE*
 ┃
 ┃ ⚠️ \`Nota:\` Lo spam destabilizza il gruppo.
-┃ La sicurezza di elixir ha priorità.
+┃ La sicurezza di NEXUS ha priorità.
 ╰⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒`;
 
                 await conn.sendMessage(m.chat, {
